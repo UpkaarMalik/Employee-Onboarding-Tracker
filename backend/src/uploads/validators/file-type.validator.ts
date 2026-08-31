@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 
-const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 export function validateImageUpload(file: Express.Multer.File | undefined): void {
