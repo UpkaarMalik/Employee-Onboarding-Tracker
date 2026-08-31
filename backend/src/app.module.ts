@@ -18,6 +18,12 @@ import { EntitlementsModule } from './entitlements/entitlements.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ResourcesModule } from './resources/resources.module';
+import { FaqModule } from './faq/faq.module';
+import { CompanyModule } from './company/company.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { CommunityModule } from './community/community.module';
+import { ExportsModule } from './exports/exports.module';
+import { ContentGalleryModule } from './content-gallery/content-gallery.module';
 
 @Module({
   imports: [
@@ -38,6 +44,12 @@ import { ResourcesModule } from './resources/resources.module';
     UploadsModule,
     NotificationsModule,
     ResourcesModule,
+    FaqModule,
+    CompanyModule,
+    FeedbackModule,
+    CommunityModule,
+    ExportsModule,
+    ContentGalleryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
