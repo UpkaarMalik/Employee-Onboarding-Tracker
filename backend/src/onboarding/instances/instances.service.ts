@@ -3,6 +3,7 @@ import { DatabaseService } from '../../database/database.service';
 import { TemplatesService } from '../templates/templates.service';
 import { TaskStateService, TaskWithEffectiveState, RawTaskRow } from '../tasks/task-state.service';
 import { resolveOwnerId } from './owner-resolver';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 export interface InstanceRow {
   id: string;
@@ -38,6 +39,7 @@ export class InstancesService {
     private readonly db: DatabaseService,
     private readonly templatesService: TemplatesService,
     private readonly taskStateService: TaskStateService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async createForEmployee(employeeId: string, createdByUserId: string): Promise<InstanceRow & { tasks: TaskRow[] }> {
@@ -137,6 +139,22 @@ const { rows: taskRows } = await client.query<TaskRow>(
       }
 
       await client.query('COMMIT');
+
+      await this.notificationsService.create({
+        userId: employeeId,
+        title: 'Onboarding started',
+        message: 'Your onboarding checklist is ready — take a look at your first tasks.',
+        type: 'ONBOARDING_STARTED',
+      });
+
+      for (const insertedTask of insertedTasks) {
+        await this.notificationsService.create({
+          userId: insertedTask.owner_id,
+          title: 'New task assigned',
+          message: `"${insertedTask.title}" has been added to an onboarding checklist.`,
+          type: 'TASK_ASSIGNED',
+        });
+      }
 
       return { ...instance, tasks: insertedTasks };
     } catch (err) {

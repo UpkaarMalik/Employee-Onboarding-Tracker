@@ -8,6 +8,7 @@ import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { AuditService } from '../../audit/audit.service';
 import { MailService } from '../../mail/mail.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 export interface TaskRow {
   id: string;
@@ -25,6 +26,7 @@ export class TasksService {
     private readonly db: DatabaseService,
     private readonly auditService: AuditService,
     private readonly mailService: MailService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async start(taskId: string, actorId: string, actorRole: string): Promise<TaskRow> {
@@ -101,10 +103,31 @@ export class TasksService {
 
       const updated = await this.transitionStatus(client, task, 'COMPLETED', actorId);
 
+      await this.notifyUnblockedDependents(client, task.id);
       await this.checkAndCompleteInstance(client, task.onboarding_instance_id);
 
       return updated;
     });
+  }
+
+  /**
+   * Any task whose single linear dependency was this one just became
+   * AVAILABLE (effective state, computed — not stored). Notify its owner.
+   */
+  private async notifyUnblockedDependents(client: PoolClient, completedTaskId: string): Promise<void> {
+    const { rows: dependents } = await client.query<{ id: string; title: string; owner_id: string }>(
+      `SELECT id, title, owner_id FROM tasks WHERE depends_on_task_id = $1 AND status = 'PENDING'`,
+      [completedTaskId],
+    );
+
+    for (const dependent of dependents) {
+      await this.notificationsService.create({
+        userId: dependent.owner_id,
+        title: 'A task is now available',
+        message: `"${dependent.title}" is now ready for you to start.`,
+        type: 'TASK_WAITING',
+      });
+    }
   }
 
   /**
@@ -191,12 +214,22 @@ export class TasksService {
     const incompleteCount = parseInt(rows[0].incomplete_required_count, 10);
 
     if (incompleteCount === 0) {
-      await client.query(
+      const { rows: completedRows } = await client.query<{ employee_id: string }>(
         `UPDATE onboarding_instances
          SET status = 'COMPLETED', completed_at = now(), version = version + 1
-         WHERE id = $1 AND status != 'COMPLETED'`,
+         WHERE id = $1 AND status != 'COMPLETED'
+         RETURNING employee_id`,
         [instanceId],
       );
+
+      if (completedRows.length > 0) {
+        await this.notificationsService.create({
+          userId: completedRows[0].employee_id,
+          title: 'Onboarding complete',
+          message: 'You have completed all required onboarding tasks. Welcome aboard!',
+          type: 'ONBOARDING_COMPLETED',
+        });
+      }
     }
   }
 
