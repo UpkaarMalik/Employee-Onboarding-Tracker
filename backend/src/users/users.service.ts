@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { DatabaseService } from '../database/database.service';
 import { DepartmentsService } from '../departments/departments.service';
 import { MailService } from '../mail/mail.service';
+import { TasksService } from '../onboarding/tasks/tasks.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -44,6 +45,7 @@ export class UsersService {
     private readonly db: DatabaseService,
     private readonly departmentsService: DepartmentsService,
     private readonly mailService: MailService,
+    private readonly tasksService: TasksService,
   ) {}
 
   async create(dto: CreateUserDto, createdByUserId: string): Promise<Omit<UserRow, 'password_hash'>> {
@@ -206,8 +208,19 @@ export class UsersService {
       [dto.mobile, dto.dob, dto.address, userId],
     );
 
-    // TODO (Day 2): once `tasks` exists, mark the "Complete Personal Details"
-    // task COMPLETED for this user's onboarding instance here.
+    const { rows: taskRows } = await this.db.query<{ id: string; status: string }>(
+      `SELECT t.id, t.status FROM tasks t
+       JOIN onboarding_instances oi ON oi.id = t.onboarding_instance_id
+       WHERE oi.employee_id = $1 AND t.title = 'Complete Personal Details' AND t.owner_id = $1`,
+      [userId],
+    );
+    const personalDetailsTask = taskRows[0];
+    if (personalDetailsTask && personalDetailsTask.status !== 'COMPLETED') {
+      if (personalDetailsTask.status !== 'IN_PROGRESS') {
+        await this.tasksService.start(personalDetailsTask.id, userId, 'EMPLOYEE');
+      }
+      await this.tasksService.complete(personalDetailsTask.id, userId, 'EMPLOYEE');
+    }
 
     return rows[0];
   }
