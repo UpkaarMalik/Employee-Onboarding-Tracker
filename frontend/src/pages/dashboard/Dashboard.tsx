@@ -155,7 +155,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
             <GlassCard className="p-6 lg:col-span-3">
               <h3 className="mb-4 text-sm font-semibold text-ink-900">Headcount by department</h3>
-              <DepartmentBarChart data={company.departments} />
+              <DepartmentBarChart data={company.departments} onBarClick={() => navigate('/company')} />
             </GlassCard>
             <GlassCard className="p-6 lg:col-span-2">
               <h3 className="mb-4 text-sm font-semibold text-ink-900">Onboarding status</h3>

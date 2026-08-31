@@ -7,7 +7,13 @@ export interface DepartmentSummary {
   employee_count: number;
 }
 
-export function DepartmentBarChart({ data }: { data: DepartmentSummary[] }) {
+interface Props {
+  data: DepartmentSummary[];
+  /** When provided, clicking a bar calls this with that department — e.g. to navigate to the Company page. */
+  onBarClick?: (dept: DepartmentSummary) => void;
+}
+
+export function DepartmentBarChart({ data, onBarClick }: Props) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
@@ -32,7 +38,14 @@ export function DepartmentBarChart({ data }: { data: DepartmentSummary[] }) {
             fontSize: 13,
           }}
         />
-        <Bar dataKey="employee_count" name="Employees" fill="#4f8e78" radius={[6, 6, 0, 0]} />
+        <Bar
+          dataKey="employee_count"
+          name="Employees"
+          fill="#4f8e78"
+          radius={[6, 6, 0, 0]}
+          cursor={onBarClick ? 'pointer' : undefined}
+          onClick={onBarClick ? (entry) => entry.payload && onBarClick(entry.payload as DepartmentSummary) : undefined}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
