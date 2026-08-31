@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ClipboardList, Sparkles, StickyNote, Users2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
 import type { DashboardResponse } from '../../lib/types';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
@@ -13,8 +14,22 @@ import { ErrorState } from '../../components/shared/ErrorState';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { IntroReveal, useIntroReveal } from '../../components/layout/IntroReveal';
 
+const QUICK_ACTIONS = [
+  { to: '/checklist', label: 'Checklist', description: 'Your onboarding tasks, start to finish.', icon: ClipboardList, bg: 'from-lavender-100 to-lavender-50', iconColor: 'text-lavender-600' },
+  { to: '/notes', label: 'Private Notes', description: 'Jot things down — only you can see these.', icon: StickyNote, bg: 'from-sky-100 to-sky-50', iconColor: 'text-sky-600' },
+  { to: '/community', label: 'Community', description: 'See what the team is talking about.', icon: Users2, bg: 'from-butter-300/50 to-butter-300/20', iconColor: 'text-clay-600' },
+];
+
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const showingIntro = useIntroReveal();
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,13 +66,45 @@ export default function Dashboard() {
     <>
       {showingIntro && <IntroReveal />}
 
-      <div className="space-y-10">
-        <div className="animate-fade-slide-up" style={{ animationDelay: '0ms' }}>
-          <h1 className="text-2xl font-bold text-ink-900">Welcome back</h1>
-          <p className="mt-1 text-sm text-ink-500">Here's where your onboarding stands today.</p>
+      <div className="space-y-8">
+        <div className="rounded-3xl bg-navy-900 p-6 text-white shadow-[0_20px_60px_-20px_rgba(16,22,44,0.6)] animate-fade-slide-up sm:p-8">
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-xl font-semibold sm:text-2xl">{greeting()} 👋</p>
+              <p className="mt-1 text-lg text-white/80">{user?.fullName}</p>
+              <p className="mt-3 text-sm uppercase tracking-wide text-white/50">
+                {onboarding ? (onboarding.status === 'COMPLETED' ? 'Onboarding complete' : `${percent}% of your onboarding is done`) : 'No onboarding assigned yet'}
+              </p>
+            </div>
+            <Button variant="accent" className="!bg-gradient-to-br !from-orange-400 !to-orange-600 shadow-[0_10px_28px_-8px_rgba(238,143,46,0.6)]" onClick={() => navigate('/checklist')}>
+              View Checklist <ArrowRight size={15} />
+            </Button>
+          </div>
         </div>
 
-        <div className="animate-fade-slide-up" style={{ animationDelay: '90ms' }}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-slide-up" style={{ animationDelay: '90ms' }}>
+          {QUICK_ACTIONS.map((action) => {
+            const Icon = action.icon;
+            return (
+              <GlassCard
+                key={action.to}
+                className={`relative cursor-pointer bg-gradient-to-br p-5 transition-all hover:-translate-y-1 hover:shadow-[0_16px_36px_-12px_rgba(88,58,158,0.3)] ${action.bg}`}
+                onClick={() => navigate(action.to)}
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm">
+                  <Icon size={18} className={action.iconColor} />
+                </div>
+                <span className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-ink-900/10 text-ink-700">
+                  <ArrowUpRight size={14} />
+                </span>
+                <h3 className="mt-4 text-sm font-semibold text-ink-900">{action.label}</h3>
+                <p className="mt-1 text-xs text-ink-600">{action.description}</p>
+              </GlassCard>
+            );
+          })}
+        </div>
+
+        <div className="animate-fade-slide-up" style={{ animationDelay: '150ms' }}>
           {!onboarding ? (
             <EmptyState
               title="No onboarding in progress"
@@ -65,34 +112,15 @@ export default function Dashboard() {
             />
           ) : (
             <GlassCard className="overflow-hidden p-0">
-              <div className="bg-gradient-to-br from-lavender-500 via-lavender-500 to-sky-500 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-white/70">
-                      Your onboarding
-                    </p>
-                    <h2 className="mt-1 text-xl font-bold">
-                      {onboarding.status === 'COMPLETED' ? (
-                        <span className="inline-flex items-center gap-2">
-                          All done <Sparkles size={18} />
-                        </span>
-                      ) : (
-                        `${percent}% complete`
-                      )}
-                    </h2>
-                  </div>
-                  <Button variant="pill" onClick={() => navigate('/checklist')}>
-                    View checklist <ArrowRight size={15} />
-                  </Button>
-                </div>
-                <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-white/25">
-                  <div
-                    className="h-full rounded-full bg-white transition-all duration-700 ease-out"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
+              <div className="flex items-center justify-between bg-sand-100/60 px-6 py-4">
+                <h2 className="text-sm font-semibold text-ink-900">
+                  {onboarding.status === 'COMPLETED' ? (
+                    <span className="inline-flex items-center gap-2">
+                      All done <Sparkles size={16} className="text-sage-600" />
+                    </span>
+                  ) : 'Up next'}
+                </h2>
               </div>
-
               <ul className="divide-y divide-sand-100">
                 {onboarding.tasks
                   .slice()
@@ -120,7 +148,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="animate-fade-slide-up" style={{ animationDelay: '180ms' }}>
+        <div className="animate-fade-slide-up" style={{ animationDelay: '210ms' }}>
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-500">
             Company overview
           </h2>
