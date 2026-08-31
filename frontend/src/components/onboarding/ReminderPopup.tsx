@@ -38,10 +38,10 @@ export function ReminderPopup() {
   const reminder = visible[0];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm">
-      <GlassCard className="p-5">
+    <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-reveal-scale">
+      <GlassCard className="p-5 shadow-[0_16px_48px_-12px_rgba(88,58,158,0.35)] ring-1 ring-lavender-200/60">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-clay-100 text-clay-600">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-clay-100 to-butter-300/60 text-clay-600">
             <BookOpen className="h-4 w-4" />
           </div>
           <div className="flex-1">
