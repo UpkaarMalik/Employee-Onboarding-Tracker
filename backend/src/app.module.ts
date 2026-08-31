@@ -13,6 +13,11 @@ import { TemplatesModule } from './onboarding/templates/templates.module';
 import { InstancesModule } from './onboarding/instances/instances.module';
 import { TasksModule } from './onboarding/tasks/tasks.module';
 import { ReadingModule } from './onboarding/reading/reading.module';
+import { NotesModule } from './notes/notes.module';
+import { EntitlementsModule } from './entitlements/entitlements.module';
+import { UploadsModule } from './uploads/uploads.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ResourcesModule } from './resources/resources.module';
 
 @Module({
   imports: [
@@ -28,6 +33,11 @@ import { ReadingModule } from './onboarding/reading/reading.module';
     InstancesModule,
     TasksModule,
     ReadingModule,
+    NotesModule,
+    EntitlementsModule,
+    UploadsModule,
+    NotificationsModule,
+    ResourcesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
