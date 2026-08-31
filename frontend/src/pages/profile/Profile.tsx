@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, Lock } from 'lucide-react';
+import { Camera, Lock, UserCircle2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
@@ -87,9 +87,12 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-ink-900">Profile</h1>
-        <p className="mt-1 text-sm text-ink-500">Your details, and what you can change yourself.</p>
+      <div className="flex items-center gap-2">
+        <UserCircle2 size={20} className="text-lavender-600" />
+        <div>
+          <h1 className="text-xl font-bold text-ink-900">Profile</h1>
+          <p className="text-sm text-ink-500">Your details, and what you can change yourself.</p>
+        </div>
       </div>
 
       <GlassCard className="p-6">

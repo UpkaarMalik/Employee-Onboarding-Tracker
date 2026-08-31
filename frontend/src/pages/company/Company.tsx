@@ -35,9 +35,12 @@ export default function Company() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-bold text-ink-900">Company</h1>
-        <p className="mt-1 text-sm text-ink-500">Department directory and headcount overview.</p>
+      <div className="flex items-center gap-2">
+        <Building2 size={20} className="text-lavender-600" />
+        <div>
+          <h1 className="text-xl font-bold text-ink-900">Company</h1>
+          <p className="text-sm text-ink-500">Department directory and headcount overview.</p>
+        </div>
       </div>
 
       <GlassCard className="p-6">

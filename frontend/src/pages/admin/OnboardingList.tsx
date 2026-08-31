@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Users } from 'lucide-react';
 import { api } from '../../lib/api';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { LoadingState } from '../../components/shared/LoadingState';
@@ -80,9 +80,12 @@ export default function OnboardingList() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-ink-900">Onboardings</h1>
-        <p className="mt-1 text-sm text-ink-500">All onboarding instances across the company.</p>
+      <div className="flex items-center gap-2">
+        <Users size={20} className="text-lavender-600" />
+        <div>
+          <h1 className="text-xl font-bold text-ink-900">Onboardings</h1>
+          <p className="text-sm text-ink-500">All onboarding instances across the company.</p>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">

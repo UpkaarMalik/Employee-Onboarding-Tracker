@@ -49,9 +49,12 @@ export default function Resources() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-bold text-ink-900">Resources</h1>
-        <p className="mt-1 text-sm text-ink-500">Read-anytime company documents and guides.</p>
+      <div className="flex items-center gap-2">
+        <FileText size={20} className="text-lavender-600" />
+        <div>
+          <h1 className="text-xl font-bold text-ink-900">Resources</h1>
+          <p className="text-sm text-ink-500">Read-anytime company documents and guides.</p>
+        </div>
       </div>
 
       {Object.entries(grouped).map(([category, items]) => (
