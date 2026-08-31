@@ -2,5 +2,5 @@ import { IsEmail } from 'class-validator';
 
 export class SetPendingEmailDto {
   @IsEmail()
-  official_email: string;
+  official_email!: string;
 }

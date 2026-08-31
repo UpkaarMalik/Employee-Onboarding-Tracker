@@ -8,9 +8,27 @@ import { RbacModule } from './rbac/rbac.module';
 import { MailModule } from './mail/mail.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { UsersModule } from './users/users.module';
+import { AuditModule } from './audit/audit.module';
+import { TemplatesModule } from './onboarding/templates/templates.module';
+import { InstancesModule } from './onboarding/instances/instances.module';
+import { TasksModule } from './onboarding/tasks/tasks.module';
+import { ReadingModule } from './onboarding/reading/reading.module';
 
 @Module({
-  imports: [DatabaseModule, RedisModule,AuthModule, RbacModule, MailModule, DepartmentsModule,UsersModule],
+  imports: [
+    DatabaseModule,
+    RedisModule,
+    AuthModule,
+    RbacModule,
+    MailModule,
+    DepartmentsModule,
+    UsersModule,
+    AuditModule,
+    TemplatesModule,
+    InstancesModule,
+    TasksModule,
+    ReadingModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

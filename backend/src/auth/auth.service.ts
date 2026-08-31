@@ -11,6 +11,7 @@ import { RedisService } from '../redis/redis.service';
 import { StringValue } from 'ms';
 import { MailService } from '../mail/mail.service';
 import Mail from 'nodemailer/lib/mailer';
+import { AuditService } from '../audit/audit.service';
 
 interface UserRow {
   id: string;
@@ -38,6 +39,7 @@ export class AuthService {
     private readonly redis: RedisService,
     private readonly jwtService: JwtService,
     private readonly mailService:MailService,
+    private readonly auditService:AuditService,
   ) {}
 
   private async findUserByIdentifier(identifier: string): Promise<UserRow | null> {
@@ -268,6 +270,14 @@ async transformEmail(userId: string) {
     personal_email: updated.personal_email,
     email: updated.email,
     is_temp_email_active: updated.is_temp_email_active,
+  });
+
+  await this.auditService.log({
+    actorId: userId,
+    eventType: 'EMAIL_TRANSFORMED',
+    targetType: 'user',
+    targetId: userId,
+    metadata: { newEmail: updated.email },
   });
 
   return {

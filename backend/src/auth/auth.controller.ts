@@ -89,5 +89,16 @@ async testMail() {
   );
   return { message: 'Check server console for Ethereal preview link' };
 }
+
+@Get('pending-transform')
+async getPendingTransform(@CurrentUser() user: { userId: string }) {
+  return this.authService.getPendingTransform(user.userId);
+}
+
+@Post('transform-email')
+@HttpCode(HttpStatus.OK)
+async transformEmail(@CurrentUser() user: { userId: string }) {
+  return this.authService.transformEmail(user.userId);
+}
   
 }

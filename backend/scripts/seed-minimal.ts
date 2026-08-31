@@ -50,7 +50,7 @@ async function seedMinimal(): Promise<void> {
     await client.query('COMMIT');
     console.log('✔ Minimal seed complete.');
     console.log('  Login email:    superadmin@company.com');
-    console.log('  Login password: SuperAdmin123!');
+    console.log('  Login password: SuperAdmin12345!');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('✘ Minimal seed failed, rolled back:', (err as Error).message);
