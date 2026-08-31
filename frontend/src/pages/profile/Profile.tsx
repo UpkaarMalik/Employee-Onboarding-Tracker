@@ -86,7 +86,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-8">
       <div className="flex items-center gap-2">
         <UserCircle2 size={20} className="text-lavender-600" />
         <div>

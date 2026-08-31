@@ -49,7 +49,7 @@ export default function ContentGallery() {
   const filtered = items.filter((i) => i.type === tab);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center gap-2">
         <Images size={20} className="text-lavender-600" />
         <div>

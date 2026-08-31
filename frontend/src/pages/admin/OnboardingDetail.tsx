@@ -76,7 +76,7 @@ export default function OnboardingDetail() {
   const sortedTasks = instance.tasks.slice().sort((a, b) => a.order_index - b.order_index);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Button variant="ghost" className="px-3 py-2 text-xs" onClick={() => navigate('/admin/onboardings')}>
         <ArrowLeft size={14} /> Back to onboardings
       </Button>
