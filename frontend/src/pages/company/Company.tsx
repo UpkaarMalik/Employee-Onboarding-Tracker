@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Building2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { DepartmentBarChart, type DepartmentSummary } from '../../components/charts/DepartmentBarChart';
+import { TrendChart } from '../../components/charts/TrendChart';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
@@ -42,6 +43,11 @@ export default function Company() {
           <p className="text-sm text-ink-500">Department directory and headcount overview.</p>
         </div>
       </div>
+
+      <GlassCard className="p-6">
+        <h2 className="mb-4 text-sm font-semibold text-ink-900">Onboarding trends by department</h2>
+        <TrendChart />
+      </GlassCard>
 
       <GlassCard className="p-6">
         <h2 className="mb-4 text-sm font-semibold text-ink-900">Headcount by department</h2>

@@ -7,8 +7,6 @@ import type { DashboardResponse } from '../../lib/types';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
 import { TaskStatusIcon } from '../../components/onboarding/TaskStatusIcon';
-import { DepartmentBarChart } from '../../components/charts/DepartmentBarChart';
-import { StatusDonutChart } from '../../components/charts/StatusDonutChart';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -55,7 +53,7 @@ export default function Dashboard() {
     return <LoadingState message="Loading your dashboard…" />;
   }
 
-  const { onboarding, company } = data;
+  const { onboarding } = data;
   const requiredTasks = onboarding?.tasks.filter((t) => t.is_required) ?? [];
   const completedRequired = requiredTasks.filter((t) => t.effective_status === 'COMPLETED').length;
   const percent = requiredTasks.length > 0
@@ -146,22 +144,6 @@ export default function Dashboard() {
               </ul>
             </GlassCard>
           )}
-        </div>
-
-        <div className="animate-fade-slide-up" style={{ animationDelay: '210ms' }}>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-500">
-            Company overview
-          </h2>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <GlassCard className="p-6 lg:col-span-3">
-              <h3 className="mb-4 text-sm font-semibold text-ink-900">Headcount by department</h3>
-              <DepartmentBarChart data={company.departments} onBarClick={() => navigate('/company')} />
-            </GlassCard>
-            <GlassCard className="p-6 lg:col-span-2">
-              <h3 className="mb-4 text-sm font-semibold text-ink-900">Onboarding status</h3>
-              <StatusDonutChart data={company.statusBreakdown} />
-            </GlassCard>
-          </div>
         </div>
       </div>
     </>
