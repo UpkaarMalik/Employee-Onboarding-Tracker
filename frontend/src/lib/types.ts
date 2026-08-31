@@ -7,6 +7,7 @@ export interface ChecklistTask {
   task_type: 'ACTION' | 'READING';
   order_index: number;
   owner_type: 'EMPLOYEE' | 'HR' | 'DEPARTMENT_ADMIN';
+  owner_id: string;
   is_required: boolean;
   depends_on_task_id: string | null;
   effective_status: EffectiveStatus;
@@ -19,6 +20,26 @@ export interface OnboardingInstance {
   employee_id: string;
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   tasks: ChecklistTask[];
+}
+
+export interface DepartmentSummaryItem {
+  id: string;
+  name: string;
+  code: string;
+  employee_count: number;
+}
+
+export interface StatusBreakdownItem {
+  status: string;
+  count: number;
+}
+
+export interface DashboardResponse {
+  onboarding: OnboardingInstance | null;
+  company: {
+    departments: DepartmentSummaryItem[];
+    statusBreakdown: StatusBreakdownItem[];
+  };
 }
 
 export interface PrivateNote {

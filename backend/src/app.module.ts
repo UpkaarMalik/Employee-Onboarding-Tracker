@@ -24,6 +24,8 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { CommunityModule } from './community/community.module';
 import { ExportsModule } from './exports/exports.module';
 import { ContentGalleryModule } from './content-gallery/content-gallery.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -50,6 +52,8 @@ import { ContentGalleryModule } from './content-gallery/content-gallery.module';
     CommunityModule,
     ExportsModule,
     ContentGalleryModule,
+    DashboardModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
