@@ -94,6 +94,7 @@ export function Topbar() {
         <Link to="/checklist" className="hover:text-sage-600">Checklist</Link>
         <Link to="/notes" className="hover:text-sage-600">Notes</Link>
         <Link to="/resources" className="hover:text-sage-600">Resources</Link>
+        <Link to="/company" className="hover:text-sage-600">Company</Link>
         {(user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'HR') && (
           <Link to="/admin/templates" className="hover:text-sage-600">Templates</Link>
         )}

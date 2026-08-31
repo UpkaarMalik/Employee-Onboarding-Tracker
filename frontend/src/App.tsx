@@ -6,6 +6,7 @@ import TemplateBuilder from './pages/admin/TemplateBuilder';
 import Checklist from './pages/employee/CheckList';
 import Notes from './pages/notes/Notes';
 import Resources from './pages/resources/Resources';
+import Company from './pages/company/Company';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppLayout } from './components/layout/AppLayout';
 
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/admin/templates" element={<TemplateBuilder />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/company" element={<Company />} />
             </Route>
           </Route>
 
