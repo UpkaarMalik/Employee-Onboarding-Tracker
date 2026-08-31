@@ -12,6 +12,7 @@ const WORKSPACE_ITEMS = [
   { to: '/notes', label: 'Notes' },
   { to: '/resources', label: 'Resources' },
   { to: '/company', label: 'Company' },
+  { to: '/gallery', label: 'Gallery' },
   { to: '/entitlements', label: 'Benefits' },
   { to: '/feedback', label: 'Feedback' },
 ];

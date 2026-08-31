@@ -16,6 +16,7 @@ import AuditLog from './pages/audit/AuditLog';
 import Entitlements from './pages/entitlements/Entitlements';
 import Profile from './pages/profile/Profile';
 import Feedback from './pages/feedback/Feedback';
+import ContentGallery from './pages/gallery/ContentGallery';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppLayout } from './components/layout/AppLayout';
 
@@ -43,6 +44,7 @@ export default function App() {
               <Route path="/entitlements" element={<Entitlements />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/feedback" element={<Feedback />} />
+              <Route path="/gallery" element={<ContentGallery />} />
             </Route>
           </Route>
 
