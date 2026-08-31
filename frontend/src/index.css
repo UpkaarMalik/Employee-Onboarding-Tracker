@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Sage — primary. Muted green-teal, not corporate blue. */
+  --color-sage-50: #f3f7f5;
+  --color-sage-100: #e3eee9;
+  --color-sage-200: #c6ded4;
+  --color-sage-300: #a0c8b7;
+  --color-sage-400: #74ab97;
+  --color-sage-500: #4f8e78;
+  --color-sage-600: #3d7362;
+  --color-sage-700: #315c4f;
+  --color-sage-800: #294a41;
+  --color-sage-900: #223d36;
+
+  /* Clay — secondary accent. Warm terracotta. */
+  --color-clay-50: #fdf4f1;
+  --color-clay-100: #fbe7df;
+  --color-clay-200: #f6cdbc;
+  --color-clay-300: #f0b79e;
+  --color-clay-400: #e59470;
+  --color-clay-500: #d97748;
+  --color-clay-600: #be5f35;
+  --color-clay-700: #9c4c2c;
+
+  /* Sand — warm neutrals, replaces cold gray. */
+  --color-sand-50: #fdfcfa;
+  --color-sand-100: #f8f5f0;
+  --color-sand-200: #efeae1;
+  --color-sand-300: #e2dacc;
+  --color-sand-400: #cabfa9;
+
+  /* Ink — text. */
+  --color-ink-900: #23241f;
+  --color-ink-700: #4a4b44;
+  --color-ink-500: #6f7069;
+  --color-ink-400: #8f9089;
+
+  /* Butter — small highlight accent (badges, focus rings). */
+  --color-butter-300: #f5dfa0;
+  --color-butter-500: #e8be55;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-sand-50);
+  color: var(--color-ink-900);
+}
