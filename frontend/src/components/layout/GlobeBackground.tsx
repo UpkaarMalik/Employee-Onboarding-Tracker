@@ -19,25 +19,24 @@ const LINKS: [number, number][] = [
  * "digital globe" at a glance. Original artwork, hand-placed node layout.
  * The whole network rotates continuously for the spin effect.
  */
-export function GlobeBackground({ size = 380, className = '' }: { size?: number; className?: string }) {
+export function GlobeBackground({ className = '' }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className={`pointer-events-none relative overflow-hidden rounded-full
+      className={`pointer-events-none relative aspect-square overflow-hidden rounded-full
                   shadow-[0_0_100px_-10px_rgba(238,143,46,0.5)] ${className}`}
-      style={{ width: size, height: size }}
     >
-      {/* Base sphere gradient — dark edge, glowing top, warm orange */}
+      {/* Base sphere gradient — dark edge, glowing top, vivid light orange */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
           background:
-            'radial-gradient(circle at 50% 20%, #fff3de 0%, #ffcf8a 22%, #f5a352 45%, #d97518 72%, #7a3d0e 100%)',
+            'radial-gradient(circle at 50% 20%, #fff2e0 0%, #ffc179 20%, #ff9d4d 42%, #f5751e 70%, #8a3d0a 100%)',
         }}
       />
 
       {/* Latitude / longitude grid — static */}
-      <svg viewBox="0 0 380 380" width={size} height={size} className="absolute inset-0">
+      <svg viewBox="0 0 380 380" width="100%" height="100%" className="absolute inset-0">
         <g stroke="rgba(255,255,255,0.45)" strokeWidth="0.75" fill="none">
           <circle cx="190" cy="190" r="188" stroke="rgba(122,61,14,0.55)" strokeWidth="1.5" />
           <line x1="2" y1="190" x2="378" y2="190" stroke="rgba(255,255,255,0.55)" />
@@ -53,8 +52,8 @@ export function GlobeBackground({ size = 380, className = '' }: { size?: number;
       {/* Node/link network overlay — rotates continuously */}
       <svg
         viewBox="0 0 380 380"
-        width={size}
-        height={size}
+        width="100%"
+        height="100%"
         className="absolute inset-0 animate-[spin_40s_linear_infinite]"
         style={{ transformOrigin: '50% 50%' }}
       >
