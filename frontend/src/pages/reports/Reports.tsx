@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { api } from '../../lib/api';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { StatusDonutChart } from '../../components/charts/StatusDonutChart';
+import { TrendChart } from '../../components/charts/TrendChart';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -64,6 +65,11 @@ export default function Reports() {
         <h1 className="text-xl font-bold text-ink-900">Reports</h1>
         <p className="mt-1 text-sm text-ink-500">Onboarding analytics at a glance.</p>
       </div>
+
+      <GlassCard className="p-6">
+        <h2 className="mb-4 text-sm font-semibold text-ink-900">Onboarding trends by department</h2>
+        <TrendChart />
+      </GlassCard>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <GlassCard className="p-6 lg:col-span-3">
