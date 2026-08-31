@@ -11,7 +11,7 @@ export function AppLayout() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-sand-50">
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden opacity-55">
-        <GlobeBackground className="w-[260px] sm:w-[380px] lg:w-[640px]" />
+        <GlobeBackground className="w-[320px] sm:w-[480px] lg:w-[820px]" />
       </div>
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />

@@ -11,14 +11,6 @@ const LINKS: [number, number][] = [
   [7, 19], [8, 20], [19, 18], [20, 18], [12, 21], [13, 22], [21, 18], [22, 18], [9, 19], [10, 20],
 ];
 
-/**
- * Clean digital-globe illustration — a smooth lit sphere with a glowing
- * dot/line "network" overlay and a latitude/longitude grid. Deliberately
- * simple (no attempt at literal continent silhouettes, which read as messy
- * at this scale) — the grid + node network is what actually reads as
- * "digital globe" at a glance. Original artwork, hand-placed node layout.
- * The whole network rotates continuously for the spin effect.
- */
 export function GlobeBackground({ className = '' }: { className?: string }) {
   return (
     <div
@@ -26,7 +18,6 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
       className={`pointer-events-none relative aspect-square overflow-hidden rounded-full
                   shadow-[0_0_100px_-10px_rgba(238,143,46,0.5)] ${className}`}
     >
-      {/* Base sphere gradient — dark edge, glowing top, vivid light orange */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
@@ -35,7 +26,6 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
         }}
       />
 
-      {/* Latitude / longitude grid — static */}
       <svg viewBox="0 0 380 380" width="100%" height="100%" className="absolute inset-0">
         <g stroke="rgba(255,255,255,0.45)" strokeWidth="0.75" fill="none">
           <circle cx="190" cy="190" r="188" stroke="rgba(122,61,14,0.55)" strokeWidth="1.5" />
@@ -49,7 +39,6 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
         </g>
       </svg>
 
-      {/* Node/link network overlay — rotates continuously */}
       <svg
         viewBox="0 0 380 380"
         width="100%"
@@ -69,7 +58,6 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
         </g>
       </svg>
 
-      {/* Static rim + specular highlight — sells the roundness */}
       <div
         className="absolute inset-0 rounded-full"
         style={{

@@ -147,7 +147,7 @@ export class TasksService {
 
   /**
    * Ownership check: only the resolved owner can start/complete a task,
-   * unless the actor is Super Admin or Admin (override, per your permissions).
+   * unless the actor is Super Admin or Admin.
    */
   private assertCanAct(task: TaskRow, actorId: string, actorRole: string): void {
     const isOwner = task.owner_id === actorId;

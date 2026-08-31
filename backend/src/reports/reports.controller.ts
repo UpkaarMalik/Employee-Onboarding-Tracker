@@ -12,9 +12,8 @@ export class ReportsController {
     return this.reportsService.getOnboardingFunnel();
   }
 
-  // Overrides the class-level 'reports.read' requirement (empty array short-
-  // circuits the guard's permission check) — the Company page embeds this
-  // chart for all employees, not just Admin/HR/Super Admin.
+  // Empty array overrides the class-level 'reports.read' requirement, opening
+  // this one endpoint to any authenticated role.
   @Permissions()
   @Get('onboarding-trend')
   async onboardingTrend(
