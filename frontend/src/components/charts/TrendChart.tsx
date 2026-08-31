@@ -93,7 +93,14 @@ export function TrendChart() {
   function toggleDept(id: string) {
     setSelectedDeptIds((prev) => {
       const next = new Set(prev ?? []);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        // Always keep at least one department selected — an empty chart is
+        // never useful, and it's confusing to end up there by accident.
+        if (next.size === 1) return next;
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
