@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, isNetworkError } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { NoInternetState } from '../../components/shared/NoInternetState';
+import { SessionExpired } from '../../components/shared/SessionExpired';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +19,20 @@ export default function Login() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [acknowledgedExpiry, setAcknowledgedExpiry] = useState(false);
+
+  if (searchParams.get('expired') === '1' && !acknowledgedExpiry) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-sand-50 px-4">
+        <SessionExpired
+          onLoginAgain={() => {
+            setAcknowledgedExpiry(true);
+            setSearchParams({}, { replace: true });
+          }}
+        />
+      </div>
+    );
+  }
 
   function validate(): boolean {
     const next: typeof errors = {};

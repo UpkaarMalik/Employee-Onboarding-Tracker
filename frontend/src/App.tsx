@@ -3,16 +3,21 @@ import { AuthProvider } from './context/AuthContext';
 import Login from './pages/auth/Login';
 import ChangePassword from './pages/auth/ChangePassword';
 import TemplateBuilder from './pages/admin/TemplateBuilder';
+import OnboardingList from './pages/admin/OnboardingList';
+import OnboardingDetail from './pages/admin/OnboardingDetail';
 import Checklist from './pages/employee/CheckList';
+import ReadingTask from './pages/employee/ReadingTask';
 import Notes from './pages/notes/Notes';
 import Resources from './pages/resources/Resources';
 import Company from './pages/company/Company';
+import Dashboard from './pages/dashboard/Dashboard';
+import Reports from './pages/reports/Reports';
+import AuditLog from './pages/audit/AuditLog';
+import Entitlements from './pages/entitlements/Entitlements';
+import Profile from './pages/profile/Profile';
+import Feedback from './pages/feedback/Feedback';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppLayout } from './components/layout/AppLayout';
-
-function Dashboard() {
-  return <div className="text-ink-900">Dashboard placeholder — built in Day 5</div>;
-}
 
 export default function App() {
   return (
@@ -26,10 +31,18 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/checklist" element={<Checklist />} />
+              <Route path="/reading/:taskId" element={<ReadingTask />} />
               <Route path="/admin/templates" element={<TemplateBuilder />} />
+              <Route path="/admin/onboardings" element={<OnboardingList />} />
+              <Route path="/admin/onboardings/:id" element={<OnboardingDetail />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/company" element={<Company />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/audit-log" element={<AuditLog />} />
+              <Route path="/entitlements" element={<Entitlements />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/feedback" element={<Feedback />} />
             </Route>
           </Route>
 

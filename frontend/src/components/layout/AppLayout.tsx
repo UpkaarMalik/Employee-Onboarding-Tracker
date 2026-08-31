@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Topbar } from './Topbar';
+import { ReminderPopup } from '../onboarding/ReminderPopup';
 
 export function AppLayout() {
   return (
@@ -8,6 +9,7 @@ export function AppLayout() {
       <main className="mx-auto max-w-5xl px-6 py-8">
         <Outlet />
       </main>
+      <ReminderPopup />
     </div>
   );
 }
