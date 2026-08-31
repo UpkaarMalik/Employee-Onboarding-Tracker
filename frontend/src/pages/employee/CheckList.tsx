@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, Mail } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import type { OnboardingInstance } from '../../lib/types';
+import type { ChecklistTask, OnboardingInstance } from '../../lib/types';
 import { GlassCard } from '../../components/ui/GlassCard';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { TaskStatusIcon } from '../../components/onboarding/TaskStatusIcon';
+import { TaskDetailModal } from '../../components/onboarding/TaskDetailModal';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -28,9 +27,8 @@ export default function Checklist() {
   const [instance, setInstance] = useState<OnboardingInstance | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
-  const [emailPromptTaskId, setEmailPromptTaskId] = useState<string | null>(null);
-  const [officialEmail, setOfficialEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [fireConfetti, setFireConfetti] = useState(false);
 
   async function load(): Promise<OnboardingInstance | null> {
@@ -59,42 +57,30 @@ export default function Checklist() {
   }
 
   async function handleStart(taskId: string) {
-    setBusyTaskId(taskId);
+    setBusy(true);
     try {
       await api.patch(`/tasks/${taskId}/start`);
       await load();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Could not start this task.');
     } finally {
-      setBusyTaskId(null);
+      setBusy(false);
     }
   }
 
   async function handleComplete(taskId: string, officialEmailValue?: string) {
-    setBusyTaskId(taskId);
+    setBusy(true);
     setError(null);
-    const wasCompleted = instance?.status === 'COMPLETED';
     try {
       await api.patch(`/tasks/${taskId}/complete`, officialEmailValue ? { official_email: officialEmailValue } : {});
-      const updated = await load();
-      if (updated?.status === 'COMPLETED' && !wasCompleted) {
-        setFireConfetti(true);
-      }
-      setEmailPromptTaskId(null);
-      setOfficialEmail('');
+      await load();
+      setFireConfetti(true);
+      setSelectedTaskId(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Could not complete this task.');
     } finally {
-      setBusyTaskId(null);
+      setBusy(false);
     }
-  }
-
-  function handleCompleteClick(taskId: string, title: string) {
-    if (title === 'Company Email ID Issuance') {
-      setEmailPromptTaskId(taskId);
-      return;
-    }
-    handleComplete(taskId);
   }
 
   if (notFound) {
@@ -119,8 +105,10 @@ export default function Checklist() {
     ? Math.round((completedRequired / requiredTasks.length) * 100)
     : 0;
 
+  const selectedTask: ChecklistTask | undefined = sortedTasks.find((t) => t.id === selectedTaskId);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Confetti fire={fireConfetti} onDone={() => setFireConfetti(false)} />
 
       <div className="animate-fade-slide-up">
@@ -144,13 +132,13 @@ export default function Checklist() {
         {sortedTasks.map((task, i) => {
           const isWaiting = task.effective_status === 'WAITING';
           const isDone = task.effective_status === 'COMPLETED';
-          const actionable = canAct(task.owner_id) && !isWaiting && !isDone;
 
           return (
             <GlassCard
               key={task.id}
-              className="animate-fade-slide-up p-5 transition-shadow hover:shadow-[0_10px_32px_-10px_rgba(88,58,158,0.25)]"
+              className="animate-fade-slide-up cursor-pointer p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_32px_-10px_rgba(88,58,158,0.25)]"
               style={{ animationDelay: `${i * 45}ms` } as CSSProperties}
+              onClick={() => setSelectedTaskId(task.id)}
             >
               <div className="flex items-start gap-4">
                 <div className="mt-0.5">
@@ -173,70 +161,30 @@ export default function Checklist() {
                   {task.description && (
                     <p className="mt-1 text-xs text-ink-500">{task.description}</p>
                   )}
-
-                  {emailPromptTaskId === task.id && (
-                    <div className="mt-3 flex items-end gap-2 rounded-xl bg-sand-50 p-3">
-                      <Input
-                        label="Official email address"
-                        placeholder="employee@company.com"
-                        value={officialEmail}
-                        onChange={(e) => setOfficialEmail(e.target.value)}
-                        className="text-sm"
-                      />
-                      <Button
-                        variant="accent"
-                        className="px-4 py-2.5 text-xs"
-                        loading={busyTaskId === task.id}
-                        onClick={() => handleComplete(task.id, officialEmail)}
-                        disabled={!officialEmail}
-                      >
-                        <Mail size={13} /> Confirm
-                      </Button>
-                    </div>
-                  )}
                 </div>
 
-                <div className="shrink-0">
-                  {isWaiting && (
-                    <span className="flex items-center gap-1 text-xs text-ink-400">
-                      <Lock size={13} /> Locked
-                    </span>
-                  )}
-                  {actionable && task.effective_status === 'AVAILABLE' && (
-                    <Button
-                      variant="secondary"
-                      className="px-4 py-2 text-xs"
-                      loading={busyTaskId === task.id}
-                      onClick={() => handleStart(task.id)}
-                    >
-                      Start
-                    </Button>
-                  )}
-                  {actionable && task.effective_status === 'IN_PROGRESS' && emailPromptTaskId !== task.id && (
-                    <Button
-                      variant="accent"
-                      className="px-4 py-2 text-xs"
-                      loading={busyTaskId === task.id}
-                      onClick={() => handleCompleteClick(task.id, task.title)}
-                    >
-                      Mark complete <ArrowRight size={13} />
-                    </Button>
-                  )}
-                  {task.task_type === 'READING' && !isDone && (
-                    <Button
-                      variant="ghost"
-                      className="px-4 py-2 text-xs"
-                      onClick={() => navigate(`/reading/${task.id}`)}
-                    >
-                      Read
-                    </Button>
-                  )}
-                </div>
+                {isWaiting && (
+                  <span className="flex shrink-0 items-center gap-1 text-xs text-ink-400">
+                    <Lock size={13} /> Locked
+                  </span>
+                )}
               </div>
             </GlassCard>
           );
         })}
       </div>
+
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          actionable={canAct(selectedTask.owner_id) && selectedTask.effective_status !== 'WAITING' && selectedTask.effective_status !== 'COMPLETED'}
+          busy={busy}
+          onClose={() => setSelectedTaskId(null)}
+          onStart={() => handleStart(selectedTask.id)}
+          onComplete={(email) => handleComplete(selectedTask.id, email)}
+          onRead={() => navigate(`/reading/${selectedTask.id}`)}
+        />
+      )}
     </div>
   );
 }
