@@ -3,6 +3,7 @@ import { Star, CheckCircle2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
+import { Banner } from '../../components/ui/Banner';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { Confetti } from '../../components/ui/Confetti';
 
@@ -196,7 +197,7 @@ export default function Feedback() {
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl bg-clay-50 px-4 py-3 text-sm text-clay-700">{error}</div>
+          <div className="mt-4"><Banner variant="error">{error}</Banner></div>
         )}
 
         <Button variant="accent" className="mt-6 w-full" onClick={handleSubmit} loading={submitting}>

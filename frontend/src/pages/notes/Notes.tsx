@@ -7,6 +7,7 @@ import type { PrivateNote } from '../../lib/types';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Banner } from '../../components/ui/Banner';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -194,7 +195,7 @@ export default function Notes() {
             </div>
 
             {error && (
-              <div className="mt-3 rounded-xl bg-clay-50 px-4 py-3 text-sm text-clay-700">{error}</div>
+              <div className="mt-3"><Banner variant="error">{error}</Banner></div>
             )}
 
             <div className="mt-4 flex items-center gap-2">

@@ -13,6 +13,7 @@ import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Confetti } from '../../components/ui/Confetti';
+import { Banner } from '../../components/ui/Banner';
 
 const STATUS_LABEL: Record<string, string> = {
   WAITING: 'Waiting',
@@ -137,11 +138,7 @@ export default function Checklist() {
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-xl bg-clay-50 px-4 py-3 text-sm text-clay-700 animate-fade-slide-up">
-          {error}
-        </div>
-      )}
+      {error && <Banner variant="error">{error}</Banner>}
 
       <div className="space-y-3">
         {sortedTasks.map((task, i) => {

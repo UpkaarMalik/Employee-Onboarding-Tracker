@@ -26,6 +26,16 @@ const EVENT_TYPES = [
   'CSV_EXPORTED',
 ];
 
+const EVENT_LABELS: Record<string, string> = {
+  ROLE_CHANGED: 'Role changed',
+  PRIVATE_NOTE_ACCESSED_BY_SUPER_ADMIN: 'Private note accessed',
+  TASK_STATUS_CHANGED: 'Task status changed',
+  TASK_REASSIGNED: 'Task reassigned',
+  TEMPLATE_UPDATED: 'Template updated',
+  EMAIL_TRANSFORMED: 'Email transformed',
+  CSV_EXPORTED: 'CSV exported',
+};
+
 const EVENT_STYLES: Record<string, string> = {
   ROLE_CHANGED: 'bg-lavender-100 text-lavender-700',
   PRIVATE_NOTE_ACCESSED_BY_SUPER_ADMIN: 'bg-clay-100 text-clay-700',
@@ -35,6 +45,25 @@ const EVENT_STYLES: Record<string, string> = {
   EMAIL_TRANSFORMED: 'bg-sand-200 text-ink-700',
   CSV_EXPORTED: 'bg-lavender-100 text-lavender-700',
 };
+
+// Human-readable summary from metadata — never surfaces raw UUIDs to the UI.
+function describeEntry(entry: AuditLogEntry): string {
+  const m = entry.metadata ?? {};
+  switch (entry.event_type) {
+    case 'ROLE_CHANGED':
+      return `${m.from ?? '—'} → ${m.to ?? '—'}`;
+    case 'TASK_STATUS_CHANGED':
+      return `${m.from ?? '—'} → ${m.to ?? '—'}${m.reason ? ` (${m.reason})` : ''}`;
+    case 'TASK_REASSIGNED':
+      return 'Reassigned to a different owner';
+    case 'CSV_EXPORTED':
+      return `${m.exportType ?? 'data'} · ${m.rowCount ?? 0} row${m.rowCount === 1 ? '' : 's'}`;
+    case 'PRIVATE_NOTE_ACCESSED_BY_SUPER_ADMIN':
+      return `${m.noteCount ?? 0} note${m.noteCount === 1 ? '' : 's'} read (break-glass)`;
+    default:
+      return entry.target_type ? `on a ${entry.target_type}` : '';
+  }
+}
 
 export default function AuditLog() {
   const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
@@ -86,7 +115,7 @@ export default function AuditLog() {
       >
         <option value="">All event types</option>
         {EVENT_TYPES.map((t) => (
-          <option key={t} value={t}>{t}</option>
+          <option key={t} value={t}>{EVENT_LABELS[t]}</option>
         ))}
       </select>
 
@@ -98,14 +127,9 @@ export default function AuditLog() {
             <GlassCard key={entry.id} className="flex flex-wrap items-center justify-between gap-2 p-4">
               <div className="flex items-center gap-3">
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${EVENT_STYLES[entry.event_type] ?? 'bg-sand-100 text-ink-700'}`}>
-                  {entry.event_type}
+                  {EVENT_LABELS[entry.event_type] ?? entry.event_type}
                 </span>
-                {entry.target_type && (
-                  <span className="text-xs text-ink-500">
-                    on {entry.target_type}
-                    {entry.target_id ? ` (${entry.target_id.slice(0, 8)}…)` : ''}
-                  </span>
-                )}
+                <span className="text-xs text-ink-500">{describeEntry(entry)}</span>
               </div>
               <span className="text-xs text-ink-400">{new Date(entry.created_at).toLocaleString()}</span>
             </GlassCard>
