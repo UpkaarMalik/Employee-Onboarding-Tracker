@@ -130,24 +130,34 @@ interface EmployeePlan {
   full_name: string;
   joining_date: string;
   outcome: 'completed' | 'in_progress' | 'not_onboarded';
+  /** How many days before "now" this onboarding instance started — spreads
+   * data across the Reports page's Today/3 Days/1 Week/1 Month/1 Year
+   * filters so switching between them is actually visible. Ignored for
+   * not_onboarded (no instance exists). */
+  daysAgo?: number;
 }
 
+// Deliberately uneven counts per department (5/3/4/2) — a real company
+// doesn't staff departments identically, and it makes the headcount chart
+// worth looking at.
 const EMPLOYEE_PLAN: EmployeePlan[] = [
-  { department_code: 'ENG', full_name: 'Priya Nair', joining_date: '2026-06-10', outcome: 'completed' },
-  { department_code: 'ENG', full_name: 'Karan Malhotra', joining_date: '2026-08-05', outcome: 'in_progress' },
+  { department_code: 'ENG', full_name: 'Priya Nair', joining_date: '2026-03-10', outcome: 'completed', daysAgo: 200 },
+  { department_code: 'ENG', full_name: 'Karan Malhotra', joining_date: '2026-08-05', outcome: 'in_progress', daysAgo: 25 },
+  { department_code: 'ENG', full_name: 'Aditi Rao', joining_date: '2026-08-29', outcome: 'completed', daysAgo: 2 },
+  { department_code: 'ENG', full_name: 'Farhan Ali', joining_date: '2026-08-31', outcome: 'in_progress', daysAgo: 0 },
   { department_code: 'ENG', full_name: 'Simran Chawla', joining_date: '2026-08-25', outcome: 'not_onboarded' },
 
-  { department_code: 'SALES', full_name: 'Arjun Reddy', joining_date: '2026-05-20', outcome: 'completed' },
-  { department_code: 'SALES', full_name: 'Divya Iyer', joining_date: '2026-07-18', outcome: 'in_progress' },
+  { department_code: 'SALES', full_name: 'Arjun Reddy', joining_date: '2026-07-03', outcome: 'completed', daysAgo: 60 },
+  { department_code: 'SALES', full_name: 'Divya Iyer', joining_date: '2026-08-27', outcome: 'in_progress', daysAgo: 5 },
   { department_code: 'SALES', full_name: 'Aman Bhatia', joining_date: '2026-08-28', outcome: 'not_onboarded' },
 
-  { department_code: 'MKT_OPS', full_name: 'Meera Pillai', joining_date: '2026-06-01', outcome: 'completed' },
-  { department_code: 'MKT_OPS', full_name: 'Rahul Deshmukh', joining_date: '2026-07-25', outcome: 'in_progress' },
+  { department_code: 'MKT_OPS', full_name: 'Meera Pillai', joining_date: '2026-05-24', outcome: 'completed', daysAgo: 100 },
+  { department_code: 'MKT_OPS', full_name: 'Rahul Deshmukh', joining_date: '2026-08-22', outcome: 'in_progress', daysAgo: 10 },
+  { department_code: 'MKT_OPS', full_name: 'Naveen Kumar', joining_date: '2026-08-30', outcome: 'completed', daysAgo: 1 },
   { department_code: 'MKT_OPS', full_name: 'Tanvi Joshi', joining_date: '2026-08-22', outcome: 'not_onboarded' },
 
-  { department_code: 'FIN', full_name: 'Sanjay Kulkarni', joining_date: '2026-05-15', outcome: 'completed' },
-  { department_code: 'FIN', full_name: 'Neha Agarwal', joining_date: '2026-07-10', outcome: 'in_progress' },
-  { department_code: 'FIN', full_name: 'Vikas Choudhary', joining_date: '2026-08-30', outcome: 'not_onboarded' },
+  { department_code: 'FIN', full_name: 'Sanjay Kulkarni', joining_date: '2026-04-05', outcome: 'completed', daysAgo: 150 },
+  { department_code: 'FIN', full_name: 'Neha Agarwal', joining_date: '2026-08-29', outcome: 'in_progress', daysAgo: 3 },
 ];
 
 function slugify(name: string): string {
@@ -283,6 +293,28 @@ async function seedEmployees(deptByCode: Record<string, string>, hrToken: string
 
     const empToken = await login(created.temp_email, DEMO_PASSWORD);
     await walkTasks(instance.tasks, plan.outcome, empToken, deptAdminToken[plan.department_code], slug);
+
+    if (plan.daysAgo !== undefined) {
+      await backdateInstance(instance.id, plan.daysAgo, plan.outcome === 'completed');
+    }
+  }
+}
+
+/**
+ * The API always sets started_at (and completed_at) to "now" — backdate
+ * both directly so the Reports trend chart has data spread across
+ * different time windows instead of everything landing on one day.
+ */
+async function backdateInstance(instanceId: string, daysAgo: number, completed: boolean): Promise<void> {
+  const startedAt = new Date(Date.now() - daysAgo * 86400000);
+  if (completed) {
+    const completedAt = new Date(startedAt.getTime() + Math.min(daysAgo, 3) * 86400000 + 3600000);
+    await pool.query(
+      'UPDATE onboarding_instances SET started_at = $1, completed_at = $2 WHERE id = $3',
+      [startedAt, completedAt, instanceId],
+    );
+  } else {
+    await pool.query('UPDATE onboarding_instances SET started_at = $1 WHERE id = $2', [startedAt, instanceId]);
   }
 }
 
