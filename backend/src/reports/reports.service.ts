@@ -57,6 +57,51 @@ export class ReportsService {
     };
   }
 
+  /**
+   * Onboardings started per day per department within [from, to] — powers
+   * the Reports "Trends" chart (range presets, bar/line/pie, per-department
+   * toggle + color). departmentIds, when provided, restricts the result to
+   * just those departments; otherwise every department is included.
+   */
+  async getOnboardingTrend(from: string, to: string, departmentIds?: string[]) {
+    const params: unknown[] = [from, to];
+    let departmentFilter = '';
+    if (departmentIds && departmentIds.length > 0) {
+      params.push(departmentIds);
+      departmentFilter = `AND u.department_id = ANY($${params.length})`;
+    }
+
+    const { rows } = await this.db.query<{ day: string; department_id: string; department_name: string; count: string }>(
+      `SELECT date_trunc('day', oi.started_at)::date AS day,
+              d.id AS department_id, d.name AS department_name,
+              COUNT(*) AS count
+       FROM onboarding_instances oi
+       JOIN users u ON u.id = oi.employee_id
+       JOIN departments d ON d.id = u.department_id
+       WHERE oi.started_at >= $1 AND oi.started_at < ($2::date + INTERVAL '1 day')
+         ${departmentFilter}
+       GROUP BY day, d.id, d.name
+       ORDER BY day ASC`,
+      params,
+    );
+
+    const { rows: allDepartments } = await this.db.query<{ id: string; name: string }>(
+      'SELECT id, name FROM departments WHERE is_active = true ORDER BY name',
+    );
+
+    return {
+      from,
+      to,
+      departments: allDepartments,
+      points: rows.map((r) => ({
+        day: r.day,
+        department_id: r.department_id,
+        department_name: r.department_name,
+        count: parseInt(r.count, 10),
+      })),
+    };
+  }
+
   async getFeedbackSummary() {
     const { rows } = await this.db.query<{ feedback_rating: number }>(
       `SELECT feedback_rating FROM onboarding_instances WHERE feedback_submitted_at IS NOT NULL`,

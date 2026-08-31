@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { Permissions } from '../common/decorators/permissions.decorator';
 
@@ -10,6 +10,16 @@ export class ReportsController {
   @Get('onboarding-funnel')
   async onboardingFunnel() {
     return this.reportsService.getOnboardingFunnel();
+  }
+
+  @Get('onboarding-trend')
+  async onboardingTrend(
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('departmentIds') departmentIds?: string,
+  ) {
+    const ids = departmentIds ? departmentIds.split(',').filter(Boolean) : undefined;
+    return this.reportsService.getOnboardingTrend(from, to, ids);
   }
 
   @Get('task-overdue')
