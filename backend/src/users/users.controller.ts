@@ -41,6 +41,11 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  async findMe(@CurrentUser() user: AuthenticatedUser) {
+    return this.usersService.findById(user.userId);
+  }
+
   @Get(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'HR')
   async findOne(@Param('id') id: string) {
