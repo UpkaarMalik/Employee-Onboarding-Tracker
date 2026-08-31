@@ -42,6 +42,18 @@
   --color-butter-300: #f5dfa0;
   --color-butter-500: #e8be55;
 
+  /* Navy — sidebar/hero surface, dark mode of the app chrome. */
+  --color-navy-950: #10162c;
+  --color-navy-900: #161d38;
+  --color-navy-800: #202a4a;
+  --color-navy-700: #2c375e;
+  --color-navy-600: #3d4a78;
+
+  /* Orange — vivid CTA accent, used sparingly against navy. */
+  --color-orange-400: #f5a352;
+  --color-orange-500: #ee8f2e;
+  --color-orange-600: #d97518;
+
   /* Lavender — soft-SaaS accent. Purple, used for gradient panels and highlighted words. */
   --color-lavender-50: #f6f4fd;
   --color-lavender-100: #ece7fb;

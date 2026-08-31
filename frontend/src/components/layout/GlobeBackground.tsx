@@ -1,46 +1,82 @@
+const NODES = [
+  [190, 30], [110, 55], [270, 55], [55, 110], [325, 110], [25, 190], [355, 190],
+  [55, 270], [325, 270], [110, 325], [270, 325], [190, 350],
+  [140, 88], [240, 88], [88, 160], [292, 160], [140, 292], [240, 292],
+  [190, 190], [126, 224], [254, 224], [158, 128], [222, 128],
+];
+
+const LINKS: [number, number][] = [
+  [0, 1], [0, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7], [6, 8], [7, 9], [8, 10],
+  [9, 11], [10, 11], [1, 12], [2, 13], [12, 13], [3, 14], [4, 15], [14, 18], [15, 18],
+  [7, 19], [8, 20], [19, 18], [20, 18], [12, 21], [13, 22], [21, 18], [22, 18], [9, 19], [10, 20],
+];
+
 /**
- * Ambient rotating-globe decoration — a "glass" circular panel with a
- * continuously scrolling landmass strip behind a static radial-shading
- * overlay. The scroll (rather than a true 3D transform) is what sells the
- * spin illusion without pulling in a WebGL/three.js dependency for one
- * decorative background element.
+ * Clean digital-globe illustration — a smooth lit sphere with a glowing
+ * dot/line "network" overlay and a latitude/longitude grid. Deliberately
+ * simple (no attempt at literal continent silhouettes, which read as messy
+ * at this scale) — the grid + node network is what actually reads as
+ * "digital globe" at a glance. Original artwork, hand-placed node layout.
+ * The whole network rotates continuously for the spin effect.
  */
-export function GlobeBackground() {
+export function GlobeBackground({ size = 380, className = '' }: { size?: number; className?: string }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed -top-24 -right-24 z-0 h-[420px] w-[420px] overflow-hidden rounded-full
-                 border border-white/50 bg-gradient-to-br from-white/40 to-butter-300/20 shadow-[0_20px_80px_-20px_rgba(232,190,85,0.35)]
-                 backdrop-blur-2xl opacity-70"
+      className={`pointer-events-none relative overflow-hidden rounded-full
+                  shadow-[0_0_100px_-10px_rgba(238,143,46,0.5)] ${className}`}
+      style={{ width: size, height: size }}
     >
-      <div className="absolute inset-0 animate-[globe-spin_26s_linear_infinite]">
-        <svg viewBox="0 0 840 420" width="840" height="420" className="h-full w-[200%]">
-          <defs>
-            <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#e2f0fb" />
-              <stop offset="100%" stopColor="#c3e0f6" />
-            </linearGradient>
-          </defs>
-          <rect width="840" height="420" fill="url(#ocean)" />
-          {[0, 420].map((offset) => (
-            <g key={offset} fill="#e8be55" opacity="0.9">
-              <ellipse cx={offset + 70} cy={140} rx="46" ry="60" />
-              <ellipse cx={offset + 150} cy={260} rx="60" ry="40" />
-              <ellipse cx={offset + 250} cy={120} rx="38" ry="50" />
-              <ellipse cx={offset + 320} cy={300} rx="50" ry="34" />
-              <ellipse cx={offset + 380} cy={180} rx="34" ry="46" />
-            </g>
-          ))}
-        </svg>
-      </div>
-      {/* Static sphere shading — sells the roundness, doesn't move */}
+      {/* Base sphere gradient — dark edge, glowing top, warm orange */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
           background:
-            'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 40%),' +
-            'radial-gradient(circle at 65% 75%, rgba(157,105,45,0.25) 0%, rgba(157,105,45,0) 55%),' +
-            'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 60%, rgba(41,74,65,0.18) 100%)',
+            'radial-gradient(circle at 50% 20%, #fff3de 0%, #ffcf8a 22%, #f5a352 45%, #d97518 72%, #7a3d0e 100%)',
+        }}
+      />
+
+      {/* Latitude / longitude grid — static */}
+      <svg viewBox="0 0 380 380" width={size} height={size} className="absolute inset-0">
+        <g stroke="rgba(255,255,255,0.45)" strokeWidth="0.75" fill="none">
+          <circle cx="190" cy="190" r="188" stroke="rgba(122,61,14,0.55)" strokeWidth="1.5" />
+          <line x1="2" y1="190" x2="378" y2="190" stroke="rgba(255,255,255,0.55)" />
+          <ellipse cx="190" cy="190" rx="188" ry="62" />
+          <ellipse cx="190" cy="190" rx="188" ry="118" />
+          <ellipse cx="190" cy="190" rx="188" ry="162" />
+          <ellipse cx="190" cy="190" rx="62" ry="188" />
+          <ellipse cx="190" cy="190" rx="118" ry="188" />
+          <ellipse cx="190" cy="190" rx="162" ry="188" />
+        </g>
+      </svg>
+
+      {/* Node/link network overlay — rotates continuously */}
+      <svg
+        viewBox="0 0 380 380"
+        width={size}
+        height={size}
+        className="absolute inset-0 animate-[spin_40s_linear_infinite]"
+        style={{ transformOrigin: '50% 50%' }}
+      >
+        <g stroke="rgba(255,255,255,0.65)" strokeWidth="0.6">
+          {LINKS.map(([a, b], i) => (
+            <line key={i} x1={NODES[a][0]} y1={NODES[a][1]} x2={NODES[b][0]} y2={NODES[b][1]} />
+          ))}
+        </g>
+        <g fill="#fff6e6">
+          {NODES.map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.8 : 1.8} opacity={0.95} />
+          ))}
+        </g>
+      </svg>
+
+      {/* Static rim + specular highlight — sells the roundness */}
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background:
+            'radial-gradient(circle at 36% 24%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 30%),' +
+            'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 58%, rgba(74,39,8,0.5) 100%)',
         }}
       />
     </div>
