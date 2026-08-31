@@ -4,9 +4,13 @@ import Login from './pages/auth/Login';
 import ChangePassword from './pages/auth/ChangePassword';
 import TemplateBuilder from './pages/admin/TemplateBuilder';
 import Checklist from './pages/employee/CheckList';
+import Notes from './pages/notes/Notes';
+import Resources from './pages/resources/Resources';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
+import { AppLayout } from './components/layout/AppLayout';
 
 function Dashboard() {
-  return <div className="p-10 text-ink-900">Dashboard placeholder — built in Day 5</div>;
+  return <div className="text-ink-900">Dashboard placeholder — built in Day 5</div>;
 }
 
 export default function App() {
@@ -16,10 +20,18 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/checklist" element={<Checklist />} />
+              <Route path="/admin/templates" element={<TemplateBuilder />} />
+              <Route path="/notes" element={<Notes />} />
+              <Route path="/resources" element={<Resources />} />
+            </Route>
+          </Route>
+
           <Route path="*" element={<Navigate to="/login" replace />} />
-          <Route path="/checklist" element={<Checklist />} />
-          <Route path="/admin/templates" element={<TemplateBuilder />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
