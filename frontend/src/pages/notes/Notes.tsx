@@ -119,7 +119,7 @@ export default function Notes() {
           <h2 className="text-sm font-semibold text-ink-900">Private notes</h2>
           <button
             onClick={startNewNote}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-sage-100 text-sage-700 hover:bg-sage-200"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-lavender-100 to-sky-100 text-lavender-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
             aria-label="New note"
           >
             <Plus size={16} />

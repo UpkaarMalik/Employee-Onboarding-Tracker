@@ -15,6 +15,7 @@ export interface TaskRow {
   onboarding_instance_id: string;
   title: string;
   owner_id: string;
+  owner_type: string;
   status: string;
   version: number;
   is_required: boolean;
@@ -32,7 +33,7 @@ export class TasksService {
   async start(taskId: string, actorId: string, actorRole: string): Promise<TaskRow> {
     return this.db.serializableTransaction(async (client) => {
       const task = await this.lockAndFetchTask(client, taskId);
-      this.assertCanAct(task, actorId, actorRole);
+      await this.assertCanAct(client, task, actorId, actorRole);
 
       if (task.status !== 'AVAILABLE' && task.status !== 'PENDING') {
         throw new ConflictException(
@@ -53,7 +54,7 @@ export class TasksService {
   ): Promise<TaskRow> {
     return this.db.serializableTransaction(async (client) => {
       const task = await this.lockAndFetchTask(client, taskId);
-      this.assertCanAct(task, actorId, actorRole);
+      await this.assertCanAct(client, task, actorId, actorRole);
 
       if (task.status === 'COMPLETED') {
         throw new ConflictException('Task is already completed');
@@ -147,14 +148,57 @@ export class TasksService {
 
   /**
    * Ownership check: only the resolved owner can start/complete a task,
-   * unless the actor is Super Admin or Admin.
+   * unless the actor is Super Admin, HR, or an Admin for that department.
+   * Special case: employees can always complete DEPARTMENT_ADMIN tasks (the
+   * admin has done the work, employee just marks it complete).
    */
-  private assertCanAct(task: TaskRow, actorId: string, actorRole: string): void {
+  private async assertCanAct(
+    client: PoolClient,
+    task: TaskRow,
+    actorId: string,
+    actorRole: string,
+  ): Promise<void> {
     const isOwner = task.owner_id === actorId;
-    const isOverrideRole = actorRole === 'SUPER_ADMIN' || actorRole === 'ADMIN';
+    if (isOwner) {
+      return;
+    }
 
-    if (!isOwner && !isOverrideRole) {
+    if (actorRole === 'SUPER_ADMIN') {
+      return;
+    }
+
+    if (actorRole === 'HR') {
+      return;
+    }
+
+    if (actorRole === 'EMPLOYEE' && task.owner_type === 'DEPARTMENT_ADMIN') {
+      return;
+    }
+
+    if (actorRole !== 'ADMIN') {
       throw new ConflictException('You are not authorized to act on this task');
+    }
+
+    const { rows: actorRows } = await client.query<{ department_id: string | null }>(
+      'SELECT department_id FROM users WHERE id = $1',
+      [actorId],
+    );
+    const actorDepartmentId = actorRows[0]?.department_id ?? null;
+    if (!actorDepartmentId) {
+      throw new ConflictException('This admin is not assigned to a department');
+    }
+
+    const { rows: employeeRows } = await client.query<{ department_id: string | null }>(
+      `SELECT u.department_id
+       FROM onboarding_instances oi
+       JOIN users u ON u.id = oi.employee_id
+       WHERE oi.id = $1`,
+      [task.onboarding_instance_id],
+    );
+    const employeeDepartmentId = employeeRows[0]?.department_id ?? null;
+
+    if (employeeDepartmentId !== actorDepartmentId) {
+      throw new ConflictException('You can only act on tasks for employees in your department');
     }
   }
 

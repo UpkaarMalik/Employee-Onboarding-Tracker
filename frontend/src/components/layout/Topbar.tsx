@@ -7,12 +7,12 @@ import type { AppNotification, NotificationType } from '../../lib/types';
 
 const UNREAD_POLL_MS = 30000;
 
-function deepLinkFor(type: NotificationType): string {
+function deepLinkFor(type: NotificationType, role?: string): string {
   switch (type) {
     case 'TASK_ASSIGNED':
     case 'TASK_WAITING':
     case 'ONBOARDING_STARTED':
-      return '/checklist';
+      return role && ['SUPER_ADMIN', 'ADMIN', 'HR'].includes(role) ? '/admin/onboardings' : '/checklist';
     case 'ONBOARDING_COMPLETED':
       return '/dashboard';
     default:
@@ -72,6 +72,12 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     }
   }
 
+  async function handleLogout() {
+    setAccountOpen(false);
+    await logout();
+    navigate('/login', { replace: true });
+  }
+
   async function handleNotificationClick(n: AppNotification) {
     setBellOpen(false);
     if (!n.is_read) {
@@ -82,7 +88,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         // Non-fatal — navigation proceeds regardless
       }
     }
-    navigate(deepLinkFor(n.type));
+    navigate(deepLinkFor(n.type, user?.role));
   }
 
   return (
@@ -161,7 +167,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 <UserCircle2 size={15} /> Profile
               </Link>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-clay-600 transition-colors hover:bg-clay-50"
               >
                 <LogOut size={15} /> Log out

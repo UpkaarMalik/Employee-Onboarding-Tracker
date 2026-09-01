@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, Camera, Cake, Lock, Mail, MapPin, Phone, UserCircle2 } from 'lucide-react';
+import { Calendar, Camera, Cake, Lock, Mail, MapPin, Phone, UserCircle2, CheckCircle, AlertCircle } from 'lucide-react';
 import { api } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -14,8 +15,10 @@ interface Me {
   dob: string | null;
   address: string | null;
   email: string | null;
+  pending_official_email: string | null;
   personal_email: string;
   role: string;
+  department_name: string | null;
   joining_date: string | null;
   profile_picture_url: string | null;
 }
@@ -34,6 +37,16 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [mobile, setMobile] = useState('');
+  const [dob, setDob] = useState('');
+  const [detailsAddress, setDetailsAddress] = useState('');
+  const [savingDetails, setSavingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
+  const [transformLoading, setTransformLoading] = useState(false);
+  const [transformError, setTransformError] = useState<string | null>(null);
+  const [transformSuccess, setTransformSuccess] = useState(false);
+  const { logout } = useAuth();
+
   async function load() {
     setError(null);
     try {
@@ -49,6 +62,23 @@ export default function Profile() {
     load();
   }, []);
 
+  async function handleTransformEmail() {
+    if (!me?.pending_official_email) return;
+    setTransformError(null);
+    setTransformLoading(true);
+    try {
+      await api.post('/auth/transform-email', {});
+      setTransformSuccess(true);
+      setTimeout(() => {
+        logout();
+      }, 2000);
+    } catch (err: any) {
+      setTransformError(err.response?.data?.message || 'Could not activate your official email.');
+    } finally {
+      setTransformLoading(false);
+    }
+  }
+
   async function handleSaveAddress() {
     if (!me) return;
     setSaving(true);
@@ -61,6 +91,19 @@ export default function Profile() {
       setError('Could not save your address.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveDetails() {
+    setDetailsError(null);
+    setSavingDetails(true);
+    try {
+      await api.patch('/users/me/complete-profile', { mobile, dob, address: detailsAddress });
+      await load();
+    } catch (err: any) {
+      setDetailsError(err.response?.data?.message || 'Could not save your details.');
+    } finally {
+      setSavingDetails(false);
     }
   }
 
@@ -89,6 +132,8 @@ export default function Profile() {
   if (me === null) {
     return <LoadingState message="Loading your profile…" />;
   }
+
+  const displayEmail = me.email ?? me.pending_official_email;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -121,6 +166,11 @@ export default function Profile() {
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80">
                 {me.role.replace('_', ' ')}
               </span>
+              {me.department_name && (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
+                  {me.department_name}
+                </span>
+              )}
               {me.joining_date && (
                 <span className="rounded-full bg-orange-500/20 px-3 py-1 text-xs font-semibold text-orange-300">
                   Member since {formatDate(me.joining_date)}
@@ -131,39 +181,114 @@ export default function Profile() {
 
           <div className="mt-4">
             <h1 className="text-xl font-bold text-white">{me.full_name}</h1>
-            <p className="mt-0.5 text-sm text-white/60">{me.personal_email}</p>
+            {displayEmail && <p className="mt-0.5 text-sm text-white/60">{displayEmail}</p>}
           </div>
         </div>
       </div>
 
-      <GlassCard className="space-y-4 p-6">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-ink-500">
-          <UserCircle2 size={14} /> Editable
-        </h3>
-        <Input
-          label="Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="Add your address"
-        />
-        <div className="flex items-center gap-3">
-          <Button onClick={handleSaveAddress} loading={saving}>Save address</Button>
-          {saved && <span className="text-xs font-medium text-sage-600">Saved ✓</span>}
-        </div>
-      </GlassCard>
+      {me.mobile === null ? (
+        <GlassCard className="space-y-4 p-6">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-ink-500">
+            <UserCircle2 size={14} /> Complete your details
+          </h3>
+          <p className="text-xs text-ink-500">
+            These haven't been filled in yet — add them now. Once saved, you'll need HR or your
+            Department Admin to change them.
+          </p>
+          <Input
+            label="Mobile number"
+            placeholder="+91 90000 00000"
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
+          />
+          <Input
+            label="Date of birth"
+            type="date"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+          />
+          <Input
+            label="Address"
+            placeholder="Your current address"
+            value={detailsAddress}
+            onChange={(e) => setDetailsAddress(e.target.value)}
+          />
+          {detailsError && <p className="text-xs text-clay-600">{detailsError}</p>}
+          <Button
+            onClick={handleSaveDetails}
+            loading={savingDetails}
+            disabled={!mobile || !dob || !detailsAddress}
+          >
+            Save details
+          </Button>
+        </GlassCard>
+      ) : (
+        <>
+          <GlassCard className="space-y-4 p-6">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-ink-500">
+              <UserCircle2 size={14} /> Editable
+            </h3>
+            <Input
+              label="Address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Add your address"
+            />
+            <div className="flex items-center gap-3">
+              <Button onClick={handleSaveAddress} loading={saving}>Save address</Button>
+              {saved && <span className="text-xs font-medium text-sage-600">Saved ✓</span>}
+            </div>
+          </GlassCard>
 
-      <GlassCard className="space-y-3 p-6">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-ink-500">
-          <Lock size={13} /> HR/Admin controlled
-        </h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <ReadOnlyField icon={Phone} label="Mobile" value={me.mobile} />
-          <ReadOnlyField icon={Cake} label="Date of birth" value={formatDate(me.dob)} />
-          <ReadOnlyField icon={Calendar} label="Joining date" value={formatDate(me.joining_date)} />
-          <ReadOnlyField icon={Mail} label="Email" value={me.email} note="Contact HR to change" />
-        </div>
-        <p className="pt-1 text-xs text-ink-400">Contact HR or your Department Admin to update any of these.</p>
-      </GlassCard>
+          <GlassCard className="space-y-3 p-6">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-ink-500">
+              <Lock size={13} /> HR/Admin controlled
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ReadOnlyField icon={Phone} label="Mobile" value={me.mobile} />
+              <ReadOnlyField icon={Cake} label="Date of birth" value={formatDate(me.dob)} />
+              <ReadOnlyField icon={Calendar} label="Joining date" value={formatDate(me.joining_date)} />
+              <ReadOnlyField icon={Mail} label="Email" value={me.email} note="Contact HR to change" />
+            </div>
+            <p className="pt-1 text-xs text-ink-400">Contact HR or your Department Admin to update any of these.</p>
+          </GlassCard>
+
+          {me.pending_official_email && !me.email && (
+            <GlassCard className={`space-y-4 p-6 ${transformSuccess ? 'bg-sage-50/50' : 'bg-yellow-50/50'} border-l-4 ${transformSuccess ? 'border-sage-500' : 'border-yellow-500'}`}>
+              <div className="flex items-start gap-3">
+                {transformSuccess ? (
+                  <CheckCircle size={20} className="mt-0.5 shrink-0 text-sage-600" />
+                ) : (
+                  <AlertCircle size={20} className="mt-0.5 shrink-0 text-yellow-600" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-sm font-semibold ${transformSuccess ? 'text-sage-900' : 'text-yellow-900'}`}>
+                    {transformSuccess ? 'Email activated!' : 'New official email ready'}
+                  </h3>
+                  <p className={`mt-1 text-sm ${transformSuccess ? 'text-sage-700' : 'text-yellow-700'}`}>
+                    {transformSuccess
+                      ? `Your official email (${me.pending_official_email}) is now active. You'll need to log in again with your new email.`
+                      : `Your official email (${me.pending_official_email}) is ready to be activated. Your temporary email will be deactivated once you activate the new one.`}
+                  </p>
+                  {transformError && (
+                    <p className="mt-2 text-sm text-clay-600">{transformError}</p>
+                  )}
+                </div>
+              </div>
+              {!transformSuccess && (
+                <Button
+                  variant="accent"
+                  loading={transformLoading}
+                  onClick={handleTransformEmail}
+                  className="w-full sm:w-auto"
+                >
+                  <Mail size={14} /> Activate official email
+                </Button>
+              )}
+            </GlassCard>
+          )}
+        </>
+      )}
     </div>
   );
 }

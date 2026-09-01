@@ -14,19 +14,19 @@ export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'HR')
+  @Roles('SUPER_ADMIN', 'HR')
   async create(@Body() dto: CreateTemplateDto, @CurrentUser() user: AuthenticatedUser) {
     return this.templatesService.create(dto, user.userId);
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'HR')
+  @Roles('SUPER_ADMIN', 'HR')
   async findAll() {
     return this.templatesService.findAll();
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'ADMIN', 'HR')
+  @Roles('SUPER_ADMIN', 'HR')
   async findOne(@Param('id') id: string) {
     return this.templatesService.findById(id);
   }

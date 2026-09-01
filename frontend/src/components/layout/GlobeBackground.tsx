@@ -15,21 +15,23 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className={`pointer-events-none relative aspect-square overflow-hidden rounded-full
-                  shadow-[0_0_100px_-10px_rgba(238,143,46,0.5)] ${className}`}
+      className={`pointer-events-auto relative aspect-square animate-[globe-breathe_8s_ease-in-out_infinite] overflow-hidden rounded-full
+                  shadow-[0_0_100px_-10px_rgba(190,95,53,0.2)] transition duration-700 ease-out
+                  hover:scale-[1.025] hover:brightness-105 hover:shadow-[0_0_120px_-10px_rgba(190,95,53,0.35)]
+          motion-reduce:animate-none motion-reduce:transition-none ${className}`}
     >
       <div
         className="absolute inset-0 rounded-full"
         style={{
           background:
-            'radial-gradient(circle at 50% 20%, #fff2e0 0%, #ffc179 20%, #ff9d4d 42%, #f5751e 70%, #8a3d0a 100%)',
+            'radial-gradient(circle at 50% 20%, #fffaf4 0%, #f8eadd 20%, #efd4bc 42%, #e2b99d 70%, #c99c85 100%)',
         }}
       />
 
       <svg viewBox="0 0 380 380" width="100%" height="100%" className="absolute inset-0">
         <g stroke="rgba(255,255,255,0.45)" strokeWidth="0.75" fill="none">
-          <circle cx="190" cy="190" r="188" stroke="rgba(122,61,14,0.55)" strokeWidth="1.5" />
-          <line x1="2" y1="190" x2="378" y2="190" stroke="rgba(255,255,255,0.55)" />
+          <circle cx="190" cy="190" r="188" stroke="rgba(156,105,82,0.35)" strokeWidth="1.5" />
+          <line x1="2" y1="190" x2="378" y2="190" stroke="rgba(255,255,255,0.42)" />
           <ellipse cx="190" cy="190" rx="188" ry="62" />
           <ellipse cx="190" cy="190" rx="188" ry="118" />
           <ellipse cx="190" cy="190" rx="188" ry="162" />
@@ -43,7 +45,7 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
         viewBox="0 0 380 380"
         width="100%"
         height="100%"
-        className="absolute inset-0 animate-[spin_40s_linear_infinite]"
+        className="absolute inset-0 animate-[spin_40s_linear_infinite] motion-reduce:animate-none"
         style={{ transformOrigin: '50% 50%' }}
       >
         <g stroke="rgba(255,255,255,0.65)" strokeWidth="0.6">
@@ -61,9 +63,9 @@ export function GlobeBackground({ className = '' }: { className?: string }) {
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background:
-            'radial-gradient(circle at 36% 24%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 30%),' +
-            'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 58%, rgba(74,39,8,0.5) 100%)',
+            background:
+            'radial-gradient(circle at 36% 24%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 30%),' +
+            'radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 58%, rgba(105,72,58,0.22) 100%)',
         }}
       />
     </div>

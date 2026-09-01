@@ -1,6 +1,6 @@
-import { IsString } from 'class-validator';
+import { IsIn } from 'class-validator';
 
 export class ReactPostDto {
-  @IsString()
+  @IsIn(['👍', 'Kudos', '👏'])
   reaction!: string;
 }

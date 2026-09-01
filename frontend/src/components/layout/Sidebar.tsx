@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, ClipboardList, StickyNote, BookOpen, Building2, Images,
-  Gift, MessageSquareHeart, HelpCircle, Users2, LayoutTemplate, ListChecks,
+  Gift, MessageSquareHeart, HelpCircle, Users2, UserPlus, LayoutTemplate, ListChecks,
   BarChart3, ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const STAFF_ROLES = ['SUPER_ADMIN', 'ADMIN', 'HR'];
+const TEMPLATE_ROLES = ['SUPER_ADMIN', 'HR'];
 
 const MAIN_ITEMS = [
   { to: '/dashboard', label: 'Home', icon: LayoutDashboard },
@@ -22,6 +23,7 @@ const MAIN_ITEMS = [
 ];
 
 const ADMIN_ITEMS = [
+  { to: '/admin/employees', label: 'Employees', icon: UserPlus },
   { to: '/admin/templates', label: 'Templates', icon: LayoutTemplate },
   { to: '/admin/onboardings', label: 'Onboardings', icon: ListChecks },
   { to: '/reports', label: 'Reports', icon: BarChart3 },
@@ -77,12 +79,15 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
         <nav className="flex flex-1 flex-col gap-1">
           <p className="px-3.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/35">Main</p>
-          {MAIN_ITEMS.map((item) => <NavLink key={item.to} {...item} onNavigate={onClose} />)}
+          {MAIN_ITEMS
+            .filter((item) => item.to !== '/checklist' || !isStaff)
+            .map((item) => <NavLink key={item.to} {...item} onNavigate={onClose} />)}
 
           {isStaff && (
             <>
               <p className="mt-4 px-3.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-white/35">Admin</p>
-              {ADMIN_ITEMS.map((item) => <NavLink key={item.to} {...item} onNavigate={onClose} />)}
+              {ADMIN_ITEMS.filter((item) => item.to !== '/admin/templates' || (user && TEMPLATE_ROLES.includes(user.role)))
+                .map((item) => <NavLink key={item.to} {...item} onNavigate={onClose} />)}
             </>
           )}
         </nav>

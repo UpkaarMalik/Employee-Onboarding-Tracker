@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
+  Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon } from 'lucide-react';
+import { BarChart3, PieChart as PieChartIcon } from 'lucide-react';
 import { api } from '../../lib/api';
 import { LoadingState } from '../shared/LoadingState';
 import { EmptyState } from '../shared/EmptyState';
@@ -25,7 +25,7 @@ interface TrendResponse {
   points: TrendPoint[];
 }
 
-type ChartType = 'bar' | 'line' | 'pie';
+type ChartType = 'bar' | 'pie';
 type RangeKey = 'today' | '3d' | '1w' | '1m' | '1y' | 'custom';
 
 const RANGE_PRESETS: { key: RangeKey; label: string; days: number | null }[] = [
@@ -155,7 +155,6 @@ export function TrendChart() {
         <div className="flex gap-1 rounded-full border border-sand-300 bg-white p-1">
           {([
             { key: 'bar', icon: BarChart3 },
-            { key: 'line', icon: LineChartIcon },
             { key: 'pie', icon: PieChartIcon },
           ] as const).map(({ key, icon: Icon }) => (
             <button
@@ -225,23 +224,6 @@ export function TrendChart() {
               <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2dacc', fontSize: 13 }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
             </PieChart>
-          ) : chartType === 'line' ? (
-            <LineChart data={seriesData} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#efeae1" vertical={false} />
-              <XAxis
-                dataKey="day"
-                tickFormatter={formatDayTick}
-                tick={{ fontSize: 11, fill: '#6f7069' }}
-                axisLine={{ stroke: '#e2dacc' }}
-                tickLine={false}
-              />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#6f7069' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2dacc', fontSize: 13 }} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              {activeDepartments.map((d) => (
-                <Line key={d.id} type="monotone" dataKey={d.name} stroke={colorByDept[d.id]} strokeWidth={2.5} dot={false} />
-              ))}
-            </LineChart>
           ) : (
             <BarChart data={seriesData} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#efeae1" vertical={false} />

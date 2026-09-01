@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Users } from 'lucide-react';
 import { api } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { LoadingState } from '../../components/shared/LoadingState';
 import { ErrorState } from '../../components/shared/ErrorState';
@@ -32,12 +33,16 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function OnboardingList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [instances, setInstances] = useState<InstanceRow[] | null>(null);
   const [employees, setEmployees] = useState<Record<string, EmployeeLite>>({});
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [currentAdminDept, setCurrentAdminDept] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
+
+  const isAdmin = user?.role === 'ADMIN';
 
   async function load() {
     setError(null);
@@ -50,6 +55,13 @@ export default function OnboardingList() {
       setInstances(instanceData);
       setEmployees(Object.fromEntries(userData.map((u) => [u.id, u])));
       setDepartments(deptData);
+
+      if (isAdmin) {
+        const adminData = await api.get('/users/me');
+        const adminDeptId = adminData.data.department_id;
+        setCurrentAdminDept(adminDeptId);
+        setDepartmentFilter(adminDeptId || 'ALL');
+      }
     } catch {
       setError('Could not load onboarding instances.');
     }
@@ -61,15 +73,19 @@ export default function OnboardingList() {
 
   const filtered = useMemo(() => {
     if (!instances) return [];
+    let filterDept = departmentFilter;
+    if (isAdmin && currentAdminDept) {
+      filterDept = currentAdminDept;
+    }
     return instances.filter((inst) => {
       if (statusFilter !== 'ALL' && inst.status !== statusFilter) return false;
-      if (departmentFilter !== 'ALL') {
+      if (filterDept !== 'ALL') {
         const emp = employees[inst.employee_id];
-        if (!emp || emp.department_id !== departmentFilter) return false;
+        if (!emp || emp.department_id !== filterDept) return false;
       }
       return true;
     });
-  }, [instances, employees, statusFilter, departmentFilter]);
+  }, [instances, employees, statusFilter, departmentFilter, isAdmin, currentAdminDept]);
 
   if (error && instances === null) {
     return <ErrorState message={error} onRetry={load} />;
@@ -100,16 +116,24 @@ export default function OnboardingList() {
           <option value="COMPLETED">Completed</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
-        <select
-          value={departmentFilter}
-          onChange={(e) => setDepartmentFilter(e.target.value)}
-          className="rounded-xl border border-sand-300 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-lavender-400 focus:ring-2 focus:ring-lavender-200"
-        >
-          <option value="ALL">All departments</option>
-          {departments.map((d) => (
-            <option key={d.id} value={d.id}>{d.name}</option>
-          ))}
-        </select>
+        {!isAdmin && (
+          <select
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+            className="rounded-xl border border-sand-300 bg-white px-3 py-2 text-sm text-ink-700 outline-none focus:border-lavender-400 focus:ring-2 focus:ring-lavender-200"
+          >
+            <option value="ALL">All departments</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
+        )}
+        {isAdmin && currentAdminDept && (
+          <div className="flex items-center gap-2 rounded-xl border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-ink-700">
+            <span className="text-xs font-medium text-ink-500">Department:</span>
+            <span className="font-semibold">{departments.find(d => d.id === currentAdminDept)?.name ?? 'Unknown'}</span>
+          </div>
+        )}
       </div>
 
       {instances.length === 0 && (

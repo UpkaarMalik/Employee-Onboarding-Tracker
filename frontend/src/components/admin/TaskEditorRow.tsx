@@ -65,7 +65,7 @@ export function TaskEditorRow({ task, index, allTasks, onChange, onRemove }: Pro
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-ink-700">Depends on</span>
+          <span className="mb-1.5 block text-sm font-medium text-ink-700">True prerequisite</span>
           <select
             className="w-full rounded-xl border border-sand-300 bg-white/80 px-4 py-3 text-sm text-ink-900 outline-none focus:ring-2 focus:ring-sage-300"
             value={task.depends_on_key ?? ''}
@@ -76,6 +76,7 @@ export function TaskEditorRow({ task, index, allTasks, onChange, onRemove }: Pro
               <option key={t.key} value={t.key}>{t.title || '(untitled)'}</option>
             ))}
           </select>
+          <span className="mt-1 block text-[11px] text-ink-400">Only set this when a task is blocked until an earlier task is completed.</span>
         </label>
 
         <label className="flex items-center gap-2 self-end pb-3">

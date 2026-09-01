@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, ClipboardList, Sparkles, StickyNote, Users2 } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BarChart3, Building2, ClipboardList, ListChecks, Sparkles, StickyNote, Users, Users2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import type { DashboardResponse } from '../../lib/types';
@@ -51,6 +51,10 @@ export default function Dashboard() {
   }
   if (data === null) {
     return <LoadingState message="Loading your dashboard…" />;
+  }
+
+  if (user && ['SUPER_ADMIN', 'ADMIN', 'HR'].includes(user.role)) {
+    return <StaffDashboard data={data} user={user} />;
   }
 
   const { onboarding } = data;
@@ -147,5 +151,83 @@ export default function Dashboard() {
         </div>
       </div>
     </>
+  );
+}
+
+function StaffDashboard({ data, user }: { data: DashboardResponse; user: { fullName: string; role: string } }) {
+  const navigate = useNavigate();
+  const totalEmployees = data.company.departments.reduce((total, department) => total + department.employee_count, 0);
+  const totalOnboardings = data.company.statusBreakdown.reduce((total, item) => total + item.count, 0);
+  const completedOnboardings = data.company.statusBreakdown.find((item) => item.status === 'COMPLETED')?.count ?? 0;
+  const activeOnboardings = data.company.statusBreakdown.find((item) => item.status === 'IN_PROGRESS')?.count ?? 0;
+
+  return (
+    <div className="space-y-8">
+      <div className="rounded-3xl bg-navy-900 p-6 text-white shadow-[0_20px_60px_-20px_rgba(16,22,44,0.6)] animate-fade-slide-up sm:p-8">
+        <p className="text-xl font-semibold sm:text-2xl">Welcome back, {user.fullName}</p>
+        <p className="mt-2 text-sm text-white/60">Your {user.role.replace('_', ' ').toLowerCase()} workspace overview.</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button variant="accent" onClick={() => navigate('/admin/onboardings')}>
+            Manage onboardings <ListChecks size={15} />
+          </Button>
+          <Button variant="ghost" className="!text-white hover:!bg-white/10" onClick={() => navigate('/reports')}>
+            View reports <BarChart3 size={15} />
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {[
+          { label: 'Employees', value: totalEmployees, icon: Users, tone: 'from-lavender-100 to-sky-100 text-lavender-600' },
+          { label: 'Active onboardings', value: activeOnboardings, icon: ListChecks, tone: 'from-sky-100 to-lavender-100 text-sky-600' },
+          { label: 'Completed', value: completedOnboardings, icon: Sparkles, tone: 'from-butter-300/60 to-clay-100 text-clay-600' },
+        ].map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <GlassCard key={stat.label} className="flex items-center gap-4 p-5 animate-fade-slide-up" style={{ animationDelay: `${index * 70 + 80}ms` }}>
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${stat.tone}`}>
+                <Icon size={19} />
+              </div>
+              <div>
+                <p className="text-xs text-ink-500">{stat.label}</p>
+                <p className="mt-1 text-2xl font-bold text-ink-900">{stat.value}</p>
+              </div>
+            </GlassCard>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <GlassCard className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-ink-900">Departments</h2>
+            <Building2 size={17} className="text-lavender-600" />
+          </div>
+          <div className="space-y-3">
+            {data.company.departments.map((department) => (
+              <div key={department.id} className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3">
+                <span className="text-sm font-medium text-ink-800">{department.name}</span>
+                <span className="text-xs font-semibold text-ink-500">{department.employee_count} employees</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-ink-900">Onboarding status</h2>
+            <span className="text-xs text-ink-400">{totalOnboardings} total</span>
+          </div>
+          <div className="space-y-3">
+            {data.company.statusBreakdown.map((item) => (
+              <div key={item.status} className="flex items-center justify-between rounded-xl bg-sand-50 px-4 py-3">
+                <span className="text-sm font-medium capitalize text-ink-800">{item.status.toLowerCase().replace('_', ' ')}</span>
+                <span className="rounded-full bg-lavender-100 px-3 py-1 text-xs font-semibold text-lavender-700">{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      </div>
+    </div>
   );
 }

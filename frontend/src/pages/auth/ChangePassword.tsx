@@ -38,7 +38,9 @@ export default function ChangePassword() {
     try {
       await api.patch('/auth/change-password', { currentPassword, newPassword });
       completePasswordChange();
-      logout(); // backend revokes the refresh token on password change — force clean re-login
+      // The backend already revoked the refresh token on password change;
+      // this just clears local state for a clean re-login.
+      await logout();
       navigate('/login');
     } catch (err: any) {
       if (isNetworkError(err)) {

@@ -49,8 +49,8 @@ const SUPER_ADMIN_PERMISSIONS: Permission[] = [
 
 const ADMIN_PERMISSIONS: Permission[] = [
   'onboarding.read', 'onboarding.update',
-  'template.manage', 'task.manage', 'task.assign',
-  'benefits.manage', 'benefits.read',
+  'task.manage', 'task.assign',
+  'benefits.read',
   'feedback.read', 'reports.read',
   'content.manage', 'content.read', 'faq.manage', 'faq.read',
   'poll.manage', 'poll.vote', 'post.moderate', 'post.read',
@@ -68,9 +68,8 @@ const HR_PERMISSIONS: Permission[] = [
   'content.manage', 'content.read', 'faq.manage', 'faq.read',
   'post.moderate', 'post.read', 'poll.vote',
   'own_onboarding.read', 'own_task.complete', 'own_notes.manage',
-  // Explicitly NOT included: template.manage (unless you want HR to manage
-  // templates too — your spec said "if HR is responsible for templates",
-  // add 'template.manage' here if so), audit.read, audit.read.scoped, system.configure
+  'template.manage',
+  // Explicitly NOT included: audit.read, audit.read.scoped, system.configure
 ];
 
 const EMPLOYEE_PERMISSIONS: Permission[] = [

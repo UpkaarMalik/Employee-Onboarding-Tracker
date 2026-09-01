@@ -61,7 +61,7 @@ export default function Company() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {departments.map((d) => (
             <GlassCard key={d.id} className="flex items-center gap-4 p-5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-600">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-lavender-100 to-sky-100 text-lavender-600 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md">
                 <Building2 size={18} />
               </div>
               <div className="min-w-0 flex-1">

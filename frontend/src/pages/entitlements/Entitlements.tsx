@@ -17,7 +17,7 @@ const CATEGORY_ICON: Record<EntitlementCategory, typeof Gift> = {
   OTHER: Gift,
 };
 
-const MANAGER_ROLES = ['SUPER_ADMIN', 'ADMIN', 'HR'];
+const MANAGER_ROLES = ['SUPER_ADMIN', 'HR'];
 
 export default function Entitlements() {
   const { user } = useAuth();

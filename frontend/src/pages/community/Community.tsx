@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { EyeOff, Heart, MessageCircle, Plus, ShieldOff, ShieldCheck } from 'lucide-react';
+import { Award, EyeOff, Hand, MessageCircle, Plus, Send, ShieldOff, ShieldCheck, ThumbsUp } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../../components/ui/GlassCard';
@@ -31,17 +31,36 @@ interface Poll {
   my_vote_option_id: string | null;
 }
 
+interface CommunityQuestion {
+  id: string;
+  question: string;
+  answer: string | null;
+  created_at: string;
+  answered_at: string | null;
+}
+
+const REACTIONS = [
+  { key: '👍', label: 'Like', icon: ThumbsUp },
+  { key: 'Kudos', label: 'Kudos', icon: Award },
+  { key: '👏', label: 'Clap', icon: Hand },
+] as const;
+
 const MODERATOR_ROLES = ['SUPER_ADMIN', 'ADMIN', 'HR'];
 
 export default function Community() {
   const { user } = useAuth();
   const canModerate = !!user && MODERATOR_ROLES.includes(user.role);
 
-  const [tab, setTab] = useState<'posts' | 'polls'>('posts');
+  const [tab, setTab] = useState<'posts' | 'polls' | 'ama'>('posts');
   const [posts, setPosts] = useState<Post[] | null>(null);
   const [polls, setPolls] = useState<Poll[] | null>(null);
+  const [questions, setQuestions] = useState<CommunityQuestion[] | null>(null);
   const [newPost, setNewPost] = useState('');
+  const [newQuestion, setNewQuestion] = useState('');
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [posting, setPosting] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [answeringId, setAnsweringId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function loadPosts() {
@@ -62,9 +81,19 @@ export default function Community() {
     }
   }
 
+  async function loadQuestions() {
+    try {
+      const { data } = await api.get<CommunityQuestion[]>('/community/questions');
+      setQuestions(data);
+    } catch {
+      setError('Could not load questions.');
+    }
+  }
+
   useEffect(() => {
     loadPosts();
     loadPolls();
+    loadQuestions();
   }, []);
 
   async function handleSubmitPost(e: React.FormEvent) {
@@ -83,12 +112,44 @@ export default function Community() {
     }
   }
 
-  async function handleReact(postId: string) {
+  async function handleReaction(postId: string, reaction: string) {
     try {
-      await api.post(`/posts/${postId}/react`, { reaction: '❤️' });
+      await api.post(`/posts/${postId}/react`, { reaction });
       await loadPosts();
     } catch {
       setError('Could not react to this post.');
+    }
+  }
+
+  async function handleSubmitQuestion(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newQuestion.trim()) return;
+    setAsking(true);
+    setError(null);
+    try {
+      await api.post('/community/questions', { question: newQuestion.trim() });
+      setNewQuestion('');
+      await loadQuestions();
+    } catch {
+      setError('Could not submit your question.');
+    } finally {
+      setAsking(false);
+    }
+  }
+
+  async function handleAnswer(questionId: string) {
+    const answer = answers[questionId]?.trim();
+    if (!answer) return;
+    setAnsweringId(questionId);
+    setError(null);
+    try {
+      await api.post(`/community/questions/${questionId}/answer`, { answer });
+      setAnswers((current) => ({ ...current, [questionId]: '' }));
+      await loadQuestions();
+    } catch {
+      setError('Could not submit your answer.');
+    } finally {
+      setAnsweringId(null);
     }
   }
 
@@ -121,7 +182,7 @@ export default function Community() {
       </div>
 
       <div className="flex gap-2">
-        {(['posts', 'polls'] as const).map((t) => (
+        {(['posts', 'polls', 'ama'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -170,15 +231,18 @@ export default function Community() {
                 )}
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleReact(post.id)}
-                      className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        post.my_reaction ? 'bg-clay-100 text-clay-700' : 'bg-sand-100 text-ink-500 hover:bg-clay-50'
-                      }`}
-                    >
-                      <Heart size={12} className={post.my_reaction ? 'fill-clay-500' : ''} />
-                      {Object.values(post.reactions).reduce((a, b) => a + b, 0)}
-                    </button>
+                    {REACTIONS.map(({ key, label, icon: Icon }) => (
+                      <button
+                        key={key}
+                        onClick={() => handleReaction(post.id, key)}
+                        title={label}
+                        className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                          post.my_reaction === key ? 'bg-lavender-100 text-lavender-700' : 'bg-sand-100 text-ink-500 hover:bg-lavender-50'
+                        }`}
+                      >
+                        <Icon size={12} /> {post.reactions[key] ?? 0}
+                      </button>
+                    ))}
                     <span className="text-xs text-ink-400">{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
                   {canModerate && (
@@ -227,6 +291,67 @@ export default function Community() {
                 </div>
                 {poll.my_vote_option_id && (
                   <p className="mt-2 text-xs text-ink-400">You've voted on this poll.</p>
+                )}
+              </GlassCard>
+            ))
+          )}
+        </div>
+      )}
+
+      {tab === 'ama' && (
+        <div className="space-y-4">
+          <GlassCard className="p-5">
+            <div className="mb-3">
+              <h2 className="text-sm font-semibold text-ink-900">Ask Me Anything</h2>
+              <p className="mt-1 text-xs text-ink-500">Ask anonymously. Your identity will not be shown with the question or answer.</p>
+            </div>
+            <form onSubmit={handleSubmitQuestion} className="space-y-3">
+              <textarea
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+                rows={3}
+                maxLength={1000}
+                placeholder="What would you like to ask the team?"
+                className="w-full rounded-xl border border-sand-300 bg-white/80 px-4 py-3 text-sm text-ink-900 outline-none focus:border-lavender-400 focus:ring-2 focus:ring-lavender-200"
+              />
+              <Button type="submit" variant="accent" loading={asking} disabled={!newQuestion.trim()}>
+                <Send size={15} /> Ask anonymously
+              </Button>
+            </form>
+          </GlassCard>
+
+          {questions === null ? (
+            <LoadingState message="Loading questions…" />
+          ) : questions.length === 0 ? (
+            <EmptyState title="No questions yet" message="Ask the first anonymous question." />
+          ) : (
+            questions.map((item) => (
+              <GlassCard key={item.id} className="p-5">
+                <p className="text-sm font-semibold text-ink-900">{item.question}</p>
+                <p className="mt-1 text-[11px] text-ink-400">Asked anonymously on {new Date(item.created_at).toLocaleDateString()}</p>
+                {item.answer ? (
+                  <div className="mt-4 rounded-xl bg-lavender-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-lavender-700">Anonymous answer</p>
+                    <p className="mt-1 text-sm text-ink-700">{item.answer}</p>
+                  </div>
+                ) : (
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={answers[item.id] ?? ''}
+                      onChange={(e) => setAnswers((current) => ({ ...current, [item.id]: e.target.value }))}
+                      maxLength={2000}
+                      placeholder="Answer anonymously…"
+                      className="min-w-0 flex-1 rounded-xl border border-sand-300 bg-white/80 px-4 py-2 text-sm text-ink-900 outline-none focus:border-lavender-400 focus:ring-2 focus:ring-lavender-200"
+                    />
+                    <Button
+                      variant="ghost"
+                      loading={answeringId === item.id}
+                      disabled={!answers[item.id]?.trim()}
+                      onClick={() => handleAnswer(item.id)}
+                    >
+                      <Send size={14} /> Answer
+                    </Button>
+                  </div>
                 )}
               </GlassCard>
             ))

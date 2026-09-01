@@ -5,6 +5,7 @@ import ChangePassword from './pages/auth/ChangePassword';
 import TemplateBuilder from './pages/admin/TemplateBuilder';
 import OnboardingList from './pages/admin/OnboardingList';
 import OnboardingDetail from './pages/admin/OnboardingDetail';
+import Employees from './pages/admin/Employees';
 import Checklist from './pages/employee/CheckList';
 import ReadingTask from './pages/employee/ReadingTask';
 import Notes from './pages/notes/Notes';
@@ -21,6 +22,21 @@ import Faq from './pages/faq/Faq';
 import Community from './pages/community/Community';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppLayout } from './components/layout/AppLayout';
+import { useAuth } from './context/AuthContext';
+
+function TemplateRoute() {
+  const { user } = useAuth();
+  return user && ['SUPER_ADMIN', 'HR'].includes(user.role)
+    ? <TemplateBuilder />
+    : <Navigate to="/dashboard" replace />;
+}
+
+function EmployeeChecklistRoute() {
+  const { user } = useAuth();
+  return user?.role === 'EMPLOYEE'
+    ? <Checklist />
+    : <Navigate to="/dashboard" replace />;
+}
 
 export default function App() {
   return (
@@ -33,9 +49,10 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/checklist" element={<Checklist />} />
+              <Route path="/checklist" element={<EmployeeChecklistRoute />} />
               <Route path="/reading/:taskId" element={<ReadingTask />} />
-              <Route path="/admin/templates" element={<TemplateBuilder />} />
+              <Route path="/admin/employees" element={<Employees />} />
+              <Route path="/admin/templates" element={<TemplateRoute />} />
               <Route path="/admin/onboardings" element={<OnboardingList />} />
               <Route path="/admin/onboardings/:id" element={<OnboardingDetail />} />
               <Route path="/notes" element={<Notes />} />

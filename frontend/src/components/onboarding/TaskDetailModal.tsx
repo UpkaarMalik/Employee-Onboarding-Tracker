@@ -20,14 +20,19 @@ interface Props {
   onClose: () => void;
   onStart: () => void;
   onComplete: (officialEmail?: string) => void;
+  onCompleteProfile: (mobile: string, dob: string, address: string) => void;
   onRead: () => void;
 }
 
-export function TaskDetailModal({ task, actionable, busy, onClose, onStart, onComplete, onRead }: Props) {
+export function TaskDetailModal({ task, actionable, busy, onClose, onStart, onComplete, onCompleteProfile, onRead }: Props) {
   const [officialEmail, setOfficialEmail] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [dob, setDob] = useState('');
+  const [address, setAddress] = useState('');
   const isDone = task.effective_status === 'COMPLETED';
   const isWaiting = task.effective_status === 'WAITING';
   const needsEmail = task.title === 'Company Email ID Issuance';
+  const needsProfileDetails = task.title === 'Complete Personal Details';
 
   return (
     <div
@@ -81,10 +86,33 @@ export function TaskDetailModal({ task, actionable, busy, onClose, onStart, onCo
           </div>
         )}
 
+        {needsProfileDetails && actionable && task.effective_status === 'IN_PROGRESS' && (
+          <div className="mt-4 space-y-3">
+            <Input
+              label="Mobile number"
+              placeholder="+91 90000 00000"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+            />
+            <Input
+              label="Date of birth"
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+            />
+            <Input
+              label="Address"
+              placeholder="Your current address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+        )}
+
         <div className="mt-6 flex items-center justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
 
-          {task.task_type === 'READING' && !isDone && (
+          {task.task_type === 'READING' && !isDone && actionable && (
             <Button variant="secondary" onClick={onRead}>
               <BookOpen size={14} /> Read
             </Button>
@@ -96,7 +124,18 @@ export function TaskDetailModal({ task, actionable, busy, onClose, onStart, onCo
             </Button>
           )}
 
-          {actionable && task.effective_status === 'IN_PROGRESS' && (
+          {actionable && task.effective_status === 'IN_PROGRESS' && needsProfileDetails && (
+            <Button
+              variant="accent"
+              loading={busy}
+              disabled={!mobile || !dob || !address}
+              onClick={() => onCompleteProfile(mobile, dob, address)}
+            >
+              Save &amp; Complete <ArrowRight size={14} />
+            </Button>
+          )}
+
+          {actionable && task.effective_status === 'IN_PROGRESS' && !needsProfileDetails && (
             <Button
               variant="accent"
               loading={busy}

@@ -15,7 +15,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (accessToken: string, refreshToken: string, user: AuthUser, mustChangePassword: boolean) => void;
   completePasswordChange: () => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -55,11 +55,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMustChangePassword(false);
   }
 
-  function logout() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
-    setMustChangePassword(false);
+  async function logout() {
+    try {
+      // Best-effort — revokes the refresh token and blacklists the current
+      // access token server-side. The local session is cleared regardless.
+      await api.post('/auth/logout');
+    } catch {
+      // Ignored — e.g. the access token was already expired.
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setUser(null);
+      setMustChangePassword(false);
+    }
   }
 
   return (

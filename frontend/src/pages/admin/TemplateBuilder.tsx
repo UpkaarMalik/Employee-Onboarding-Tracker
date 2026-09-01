@@ -115,15 +115,25 @@ export default function TemplateBuilder() {
       const payload = {
         department_id: departmentId,
         name: templateName,
-        tasks: tasks.map((t, i) => ({
-          title: t.title,
-          description: t.description || undefined,
-          task_type: t.task_type,
-          order_index: i + 1,
-          owner_type: t.owner_type,
-          is_required: t.is_required,
-          depends_on_order_index: t.depends_on_key ? keyToOrderIndex.get(t.depends_on_key) : undefined,
-        })),
+        tasks: tasks.map((t, i) => {
+          const dependencyOrder = t.depends_on_key ? keyToOrderIndex.get(t.depends_on_key) : undefined;
+          const currentOrder = i + 1;
+
+          // Only keep a dependency when it is a true prerequisite: the dependency
+          // must point to an earlier task in the sequence, never a later task or
+          // the same task. This prevents workflow-style links from blocking tasks.
+          const validDependency = dependencyOrder && dependencyOrder < currentOrder ? dependencyOrder : undefined;
+
+          return {
+            title: t.title,
+            description: t.description || undefined,
+            task_type: t.task_type,
+            order_index: currentOrder,
+            owner_type: t.owner_type,
+            is_required: t.is_required,
+            depends_on_order_index: validDependency,
+          };
+        }),
       };
       // Creating a new POST with the same department_id auto-versions and
       // deactivates the prior version — this *is* the edit flow (see

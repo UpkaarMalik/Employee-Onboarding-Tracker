@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +10,7 @@ import { DatabaseService } from '../database/database.service';
 import { DepartmentsService } from '../departments/departments.service';
 import { MailService } from '../mail/mail.service';
 import { TasksService } from '../onboarding/tasks/tasks.service';
+import { InstancesService } from '../onboarding/instances/instances.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -27,6 +29,7 @@ export interface UserRow {
   is_temp_email_active: boolean;
   role: string;
   department_id: string | null;
+  department_name?: string | null;
   profile_picture_url: string | null;
   joining_date: string | null;
   is_active: boolean;
@@ -39,13 +42,23 @@ const USER_PUBLIC_COLUMNS = `
   profile_picture_url, joining_date, is_active, created_at
 `;
 
+const USER_SELECT_COLUMNS = `
+  u.id, u.full_name, u.mobile, u.dob, u.address, u.personal_email, u.temp_email, u.email,
+  u.pending_official_email, u.is_temp_email_active, u.role, u.department_id,
+  d.name AS department_name, u.profile_picture_url, u.joining_date,
+  u.is_active, u.created_at
+`;
+
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     private readonly db: DatabaseService,
     private readonly departmentsService: DepartmentsService,
     private readonly mailService: MailService,
     private readonly tasksService: TasksService,
+    private readonly instancesService: InstancesService,
   ) {}
 
   async create(dto: CreateUserDto, createdByUserId: string): Promise<Omit<UserRow, 'password_hash'>> {
@@ -105,22 +118,37 @@ export class UsersService {
       tempPassword,
     );
 
-    // TODO (Day 2): once onboarding_instances/tasks exist, trigger instance
-    // creation here so the employee has their checklist ready on first login.
+    // Start onboarding immediately so the employee's checklist is ready on
+    // first login. A missing template for the department shouldn't fail
+    // employee creation (credentials are already sent) — HR can still start
+    // it manually once a template exists.
+    try {
+      await this.instancesService.createForEmployee(newUser.id, createdByUserId);
+    } catch (err) {
+      this.logger.warn(
+        `Could not auto-start onboarding for ${newUser.id}: ${(err as Error).message}`,
+      );
+    }
 
     return newUser;
   }
 
   async findAll(): Promise<UserRow[]> {
     const { rows } = await this.db.query<UserRow>(
-      `SELECT ${USER_PUBLIC_COLUMNS} FROM users ORDER BY created_at DESC`,
+      `SELECT ${USER_SELECT_COLUMNS}
+       FROM users u
+       LEFT JOIN departments d ON d.id = u.department_id
+       ORDER BY u.created_at DESC`,
     );
     return rows;
   }
 
   async findById(id: string): Promise<UserRow> {
     const { rows } = await this.db.query<UserRow>(
-      `SELECT ${USER_PUBLIC_COLUMNS} FROM users WHERE id = $1`,
+      `SELECT ${USER_SELECT_COLUMNS}
+       FROM users u
+       LEFT JOIN departments d ON d.id = u.department_id
+       WHERE u.id = $1`,
       [id],
     );
     if (rows.length === 0) {

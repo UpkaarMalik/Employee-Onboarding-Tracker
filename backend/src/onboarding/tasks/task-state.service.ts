@@ -63,9 +63,14 @@ export class TaskStateService {
     task: RawTaskRow,
     dependencyStatus: string | null,
   ): EffectiveTaskStatus {
+    if (task.status === 'COMPLETED') {
+      return 'COMPLETED';
+    }
+
     if (task.depends_on_task_id && dependencyStatus !== 'COMPLETED') {
       return 'WAITING';
     }
+
     // No dependency, or dependency is COMPLETED — the task's own raw status
     // is the truth. PENDING at this point means "ready to be picked up",
     // which is what AVAILABLE communicates to the UI.
